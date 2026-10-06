@@ -21,6 +21,7 @@ export default function ContactPage() {
         crumbs={[{ name: 'Contact', path: '/contact' }]}
         title="Get a free demolition quote"
         lede={<p>Request a free demolition quote, ask a question or book a site visit. Call us, or send the details below and we’ll get back to you.</p>}
+        image="excavator-loading-dump-truck"
         cta="none"
       />
 

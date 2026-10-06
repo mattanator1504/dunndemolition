@@ -35,6 +35,7 @@ export function MotionRoot() {
 
     // Parallax: move each photo up to ±6% of its frame height as it crosses the viewport.
     const photos = Array.from(document.querySelectorAll<HTMLElement>('[data-parallax]'));
+    const drifts = Array.from(document.querySelectorAll<HTMLElement>('[data-drift]'));
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -46,9 +47,16 @@ export function MotionRoot() {
           const t = (frame.top + frame.height / 2 - vh / 2) / (vh / 2 + frame.height / 2); // -1..1
           img.style.transform = `translate3d(0, ${(-t * frame.height * 0.06).toFixed(1)}px, 0) scale(1.14)`;
         }
+        // Filmstrip rows: slide sideways (opposite directions) as the band crosses the viewport.
+        for (const row of drifts) {
+          const r = row.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > vh) continue;
+          const t = (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2); // -1..1
+          row.style.transform = `translate3d(${(t * Number(row.dataset.drift) * Math.min(innerWidth * 0.18, 260)).toFixed(1)}px, 0, 0)`;
+        }
       });
     };
-    if (photos.length) {
+    if (photos.length || drifts.length) {
       onScroll();
       addEventListener('scroll', onScroll, { passive: true });
       addEventListener('resize', onScroll);

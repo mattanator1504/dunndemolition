@@ -26,6 +26,7 @@ export default function FaqsPage() {
         crumbs={[{ name: 'FAQs', path: '/faqs' }]}
         title="Demolition FAQs"
         lede={<p>Straight answers to the demolition questions we hear most: permits, timing, insurance and where everything ends up.</p>}
+        image="excavator-dismantling-industrial-building"
       />
       <section className="bg-paper py-16 lg:py-24">
         <div className="container-x grid gap-16">

@@ -28,7 +28,7 @@ export function PageHero({ crumbs, title, lede, image, cta = 'quote' }: Props) {
           )}
         </div>
         {image && (
-          <div className="relative hidden aspect-[4/3] overflow-hidden border-2 border-paper shadow-[10px_10px_0_0_var(--color-accent)] lg:block">
+          <div className="relative aspect-[16/9] overflow-hidden border-2 border-paper shadow-[8px_8px_0_0_var(--color-accent)] lg:aspect-[4/3] lg:shadow-[10px_10px_0_0_var(--color-accent)]">
             <Photo name={image} sizes="(min-width: 1024px) 40vw, 100vw" className="photo h-full w-full object-cover" eager />
           </div>
         )}

@@ -64,7 +64,7 @@ They're general guides. Where they differ from this file or `technical-seo.md` �
 - **Next.js** (App Router, latest stable) + **TypeScript**
 - **Static export:** `output: 'export'`, `trailingSlash: false`, so the current URLs work without redirects
 - **Tailwind CSS**
-- **3D:** plain `three` (no React Three Fiber: one scene doesn't need it, and it keeps the 3D chunk at ~134 KB gz). `components/three/HeroScene.ts` is imported dynamically by `HeroSceneMount.tsx` on first interaction or after 6 s idle, on capable desktops only. Add `?3d` to a URL to skip the low-power checks when testing.
+- **3D:** plain `three` (no React Three Fiber: one scene doesn't need it, and it keeps the 3D chunk at ~134 KB gz). `components/three/HeroScene.ts` is imported dynamically by `HeroSceneMount.tsx` on first interaction or after 6 s idle, on capable desktops only. It's one fixed, click-through canvas with two passes: the wall inside the hero box, then debris that tumbles down the page gutters and lands in a pile on the footer (home page only). Add `?3d` to a URL to skip the low-power checks when testing.
 - **Motion:** GSAP + ScrollTrigger for scroll-driven sequences, and Lenis for smooth scroll (off under reduced motion). Small UI transitions use CSS.
 - **Content:** TypeScript files in `/content`
 - **Images:** Unsplash, downloaded once and self-hosted as pre-optimised WebP/AVIF in `/public/images`, with the photographer credited in `data/image-credits.csv`. Real Dunn photos replace stock as they arrive. Don't hotlink.
@@ -79,7 +79,7 @@ They're general guides. Where they differ from this file or `technical-seo.md` �
 
 | URL | Page | Notes |
 |-----|------|-------|
-| `/` | Home | 3D hero "We break it down." → stats → 6 service cards → why Dunn → recycled stone banner → how it works (4 steps) → testimonials (only if verified) → 4 FAQs → quote CTA. Keep it to 600 words or fewer. |
+| `/` | Home | 3D hero "We break it down." → stats → 6 photo service cards → why Dunn → photo filmstrip → recycled stone banner → how it works (4 steps) → testimonials (only if verified) → 4 FAQs → quote CTA. Keep it to 600 words or fewer. |
 | `/about` | About | The Dunn legacy since 1974, crews and experience, licensing and insurance, safety and permits |
 | `/services` | Services overview | Demolition services, recycling and stone sales, equipment, locations and hours, who to call |
 | `/faqs` | FAQs | All 19 Q&As, FAQPage schema |
@@ -114,7 +114,7 @@ app/
   sitemap.ts  robots.ts
 components/
   site/       Header, Footer, SkipLink, QuoteButton, CallButton, Breadcrumbs
-  sections/   Hero, Stats, ServiceCards, WhyDunn, StoneBanner, Process, Testimonials, Faq, PricingTable, Locations, QuoteCta
+  sections/   Hero, Stats, ServiceCards, WhyDunn, PhotoReel, StoneBanner, Process, Testimonials, Faq, PricingTable, Locations, QuoteCta
   three/      HeroScene.ts (the wall), HeroSceneMount.tsx (when/whether it loads)
   motion/     MotionRoot (reveal, count-up, parallax, Lenis), ProcessTimeline (GSAP pin), motionBoot
   forms/      GeniusNexForm (facade → iframe on interaction), EmailQuoteForm (fallback until the demolition form ID is set)

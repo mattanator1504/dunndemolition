@@ -144,5 +144,103 @@
     "photographer": "Tamás Szabó",
     "profile": "https://unsplash.com/@tomi_",
     "alt": "Excavator grapple over a pile of demolition debris between brick buildings"
+  },
+  {
+    "file": "excavator-dismantling-industrial-building",
+    "id": "zQBjgS4PGpg",
+    "src": "photo-1711618732582-b6ea9a500a8b",
+    "widths": [
+      480,
+      960,
+      1200
+    ],
+    "photographer": "Marek Studzinski",
+    "profile": "https://unsplash.com/@jccards",
+    "alt": "Excavator pulling apart an industrial building as a worker in hi-vis watches"
+  },
+  {
+    "file": "excavator-bucket-on-rubble",
+    "id": "WoZs8gGyQBY",
+    "src": "photo-1580901369227-308f6f40bdeb",
+    "widths": [
+      480,
+      960
+    ],
+    "photographer": "Gerold Hinzen",
+    "profile": "https://unsplash.com/@geroldhinzen",
+    "alt": "Close-up of an excavator bucket resting on broken stone"
+  },
+  {
+    "file": "broken-rock-pile",
+    "id": "DEdnviFTeZE",
+    "src": "photo-1663763056567-696a751e263a",
+    "widths": [
+      480,
+      960
+    ],
+    "photographer": "Pavlo Osipov",
+    "profile": "https://unsplash.com/@videosipov",
+    "alt": "Pile of broken rock and concrete chunks"
+  },
+  {
+    "file": "broken-concrete-rubble",
+    "id": "gR4ebUV9be8",
+    "src": "photo-1773614359232-8eef10578150",
+    "widths": [
+      480,
+      960
+    ],
+    "photographer": "Alberto Lung",
+    "profile": "https://unsplash.com/@albertolung",
+    "alt": "Pile of broken concrete and rubble"
+  },
+  {
+    "file": "aerial-dump-trucks",
+    "id": "EN1tF2EG-50",
+    "src": "photo-1517089152318-42ec560349c0",
+    "widths": [
+      480,
+      960
+    ],
+    "photographer": "Shane McLendon",
+    "profile": "https://unsplash.com/@kctinman",
+    "alt": "Aerial view of dump trucks and equipment on a large dirt site"
+  },
+  {
+    "file": "aerial-heavy-equipment",
+    "id": "9jPJrfLTBi0",
+    "src": "photo-1517089596392-fb9a9033e05b",
+    "widths": [
+      480,
+      960
+    ],
+    "photographer": "Shane McLendon",
+    "profile": "https://unsplash.com/@kctinman",
+    "alt": "Aerial view of excavators and loaders working a site"
+  },
+  {
+    "file": "excavator-loading-dump-truck",
+    "id": "eKY6_9W_iqY",
+    "src": "photo-1575281923032-f40d94ef6160",
+    "widths": [
+      480,
+      960,
+      1200
+    ],
+    "photographer": "Troy Mortier",
+    "profile": "https://unsplash.com/@troyscanon",
+    "alt": "Excavator dumping soil into a dump truck in a cloud of dust"
+  },
+  {
+    "file": "loader-at-night",
+    "id": "70YtS5xU1Ro",
+    "src": "photo-1779971403703-2366e4aca1cc",
+    "widths": [
+      480,
+      960
+    ],
+    "photographer": "Yuriy Vertikov",
+    "profile": "https://unsplash.com/@noa69",
+    "alt": "Wheel loader parked at night under work lights, in black and white"
   }
 ]

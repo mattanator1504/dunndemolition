@@ -3,10 +3,11 @@ import { CallButton } from '@/components/site/CallButton';
 import { site } from '@/lib/site';
 
 // Every page ends here: one statement, the two ways to reach us, one line of proof.
-export function QuoteCta({ title = 'Got something that needs to come down?', line }: { title?: string; line?: string }) {
+// pileRoom: extra space at the bottom on desktop where the home page's falling debris lands.
+export function QuoteCta({ title = 'Got something that needs to come down?', line, pileRoom }: { title?: string; line?: string; pileRoom?: boolean }) {
   return (
     <section className="on-ink bg-ink text-paper" aria-labelledby="cta-title">
-      <div className="container-x grid gap-10 py-20 lg:grid-cols-[1.4fr_1fr] lg:items-end lg:py-24">
+      <div className={`container-x grid gap-10 py-20 lg:grid-cols-[1.4fr_1fr] lg:items-end lg:py-24 ${pileRoom ? 'lg:pb-44' : ''}`}>
         <div data-reveal>
           <h2 id="cta-title" className="h-section">
             {title}

@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { HeroSceneHandle } from './HeroScene';
 
 // Decides whether and when the 3D wall loads (technical-seo.md §4):
 // - never under reduced motion, Save-Data, no WebGL, small screens or low-power devices
 // - otherwise on the first user interaction, or once the page has been idle a while
 // The poster (same framing as the scene's first frame) is always rendered first.
+// Live, the canvas is a fixed, click-through layer over the whole viewport: the wall is
+// drawn inside the hero's box, and debris falls down the page edges to the footer.
 
 function canRun3D() {
   if (typeof window === 'undefined') return false;
@@ -66,25 +69,31 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
     if (!active || !canvasRef.current || !boxRef.current) return;
     let handle: HeroSceneHandle | undefined;
     let disposed = false;
-    let io: IntersectionObserver | undefined;
     let raf = 0;
     const poster = new URLSearchParams(location.search).has('poster');
     const hero = document.getElementById(heroId);
 
+    const footer = document.querySelector('footer');
+    const sync = () => {
+      if (!hero || !handle || !boxRef.current) return;
+      const r = hero.getBoundingClientRect();
+      handle.setProgress(-r.top / (r.height * 0.8));
+      const b = boxRef.current.getBoundingClientRect();
+      handle.setBox({ left: b.left, top: b.top, width: b.width, height: b.height });
+      handle.setPage(window.scrollY, footer ? footer.getBoundingClientRect().top : null);
+    };
     const onScroll = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        if (!hero || !handle) return;
-        const r = hero.getBoundingClientRect();
-        handle.setProgress(-r.top / (r.height * 0.8));
-      });
+      raf = requestAnimationFrame(sync);
     };
     const onPointer = (e: PointerEvent) => {
       handle?.setPointer((e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1);
     };
-    const onResize = () => handle?.resize();
-    const onVisibility = () => handle?.setRunning(!document.hidden && visible);
-    let visible = true;
+    const onResize = () => {
+      handle?.resize();
+      sync();
+    };
+    const onVisibility = () => handle?.setRunning(!document.hidden);
 
     import('./HeroScene').then(({ createHeroScene, FRAME_ASPECT }) => {
       Object.assign(window, { __frameAspect: FRAME_ASPECT });
@@ -95,18 +104,14 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
         Object.assign(window, { __heroScene: handle, __posterReady: true });
         return;
       }
-      onScroll();
+      sync();
       handle.renderOnce();
       requestAnimationFrame(() => {
         setShown(true);
         // Hide the poster once the live canvas has faded in over it.
         window.setTimeout(() => hero?.setAttribute('data-scene', 'live'), 700);
       });
-      io = new IntersectionObserver(([entry]) => {
-        visible = entry.isIntersecting;
-        handle?.setRunning(visible && !document.hidden);
-      });
-      io.observe(boxRef.current!);
+      handle.setRunning(!document.hidden);
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('pointermove', onPointer, { passive: true });
       window.addEventListener('resize', onResize);
@@ -116,7 +121,6 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
-      io?.disconnect();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('resize', onResize);
@@ -126,15 +130,22 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
     };
   }, [active, heroId]);
 
+  const poster = typeof location !== 'undefined' && location.search.includes('poster');
+  const canvas = active && (
+    <canvas
+      ref={canvasRef}
+      aria-hidden="true"
+      className={
+        poster
+          ? 'absolute inset-0 h-full w-full'
+          : 'pointer-events-none fixed inset-0 z-40 h-[100lvh] w-full transition-opacity duration-700'
+      }
+      style={{ opacity: shown || poster ? 1 : 0 }}
+    />
+  );
   return (
     <div ref={boxRef} className="absolute inset-0" aria-hidden="true">
-      {active && (
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 h-full w-full transition-opacity duration-700"
-          style={{ opacity: shown || (typeof location !== 'undefined' && location.search.includes('poster')) ? 1 : 0 }}
-        />
-      )}
+      {canvas && (poster ? canvas : createPortal(canvas, document.body))}
     </div>
   );
 }

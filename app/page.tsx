@@ -7,6 +7,7 @@ import { ServiceCards } from '@/components/sections/ServiceCards';
 import { SectionHead } from '@/components/sections/SectionHead';
 import { WhyDunn } from '@/components/sections/WhyDunn';
 import { StoneBanner } from '@/components/sections/StoneBanner';
+import { PhotoReel } from '@/components/sections/PhotoReel';
 import { Process } from '@/components/sections/Process';
 import { FaqList } from '@/components/sections/FaqList';
 import { QuoteCta } from '@/components/sections/QuoteCta';
@@ -48,6 +49,7 @@ export default function HomePage() {
       </section>
 
       <WhyDunn />
+      <PhotoReel />
       <StoneBanner />
       <Process />
 
@@ -64,7 +66,7 @@ export default function HomePage() {
       </section>
       <JsonLd data={faqSchema(homeFaqs)} />
 
-      <QuoteCta />
+      <QuoteCta pileRoom />
     </>
   );
 }
