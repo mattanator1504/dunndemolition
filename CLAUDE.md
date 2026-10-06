@@ -64,13 +64,14 @@ They're general guides. Where they differ from this file or `technical-seo.md` �
 - **Next.js** (App Router, latest stable) + **TypeScript**
 - **Static export:** `output: 'export'`, `trailingSlash: false`, so the current URLs work without redirects
 - **Tailwind CSS**
-- **3D:** `three` via `@react-three/fiber` + `@react-three/drei`. Client components loaded with `next/dynamic` (`ssr: false`), mounted on idle or when scrolled into view.
+- **3D:** plain `three` (no React Three Fiber: one scene doesn't need it, and it keeps the 3D chunk at ~134 KB gz). `components/three/HeroScene.ts` is imported dynamically by `HeroSceneMount.tsx` on first interaction or after 6 s idle, on capable desktops only. Add `?3d` to a URL to skip the low-power checks when testing.
 - **Motion:** GSAP + ScrollTrigger for scroll-driven sequences, and Lenis for smooth scroll (off under reduced motion). Small UI transitions use CSS.
 - **Content:** TypeScript files in `/content`
 - **Images:** Unsplash, downloaded once and self-hosted as pre-optimised WebP/AVIF in `/public/images`, with the photographer credited in `data/image-credits.csv`. Real Dunn photos replace stock as they arrive. Don't hotlink.
 - **Forms:** GeniusNex (GoHighLevel) embeds, loaded on interaction or when in view (see `technical-seo.md`). The material quote form is `xb5iVcnYUS5fS3lUUw3z`. The demolition quote form ID is `[FILL]`.
 - **Hosting:** Vercel, deployed from GitHub. Redirects and headers live in `vercel.json`.
 - **Checker:** `scripts/verify-seo.mjs` (`npm run verify`)
+- **Build-time assets:** `npm run images` (Unsplash → WebP + credits, from `data/images.json`) and `node scripts/render-assets.mjs` after a build (hero poster, OG image, icons). Rebuild after rendering assets.
 
 ## Site map
 
@@ -114,9 +115,9 @@ app/
 components/
   site/       Header, Footer, SkipLink, QuoteButton, CallButton, Breadcrumbs
   sections/   Hero, Stats, ServiceCards, WhyDunn, StoneBanner, Process, Testimonials, Faq, PricingTable, Locations, QuoteCta
-  three/      HeroScene, DebrisField, Excavator (all 'use client', dynamic import only)
-  motion/     Reveal, Parallax, CountUp, SmoothScroll ('use client')
-  forms/      GeniusNexForm (facade → iframe on interaction)
+  three/      HeroScene.ts (the wall), HeroSceneMount.tsx (when/whether it loads)
+  motion/     MotionRoot (reveal, count-up, parallax, Lenis), ProcessTimeline (GSAP pin), motionBoot
+  forms/      GeniusNexForm (facade → iframe on interaction), EmailQuoteForm (fallback until the demolition form ID is set)
   seo/        JsonLd + one builder per schema type
 content/
   services/*.ts  areas/*.ts  blog/*.ts  faqs.ts  pricing.ts
@@ -127,7 +128,7 @@ lib/
 references/      voice, humor (blog only), opinions, stats, stories, used-keywords
 data/            keywords.csv, url-inventory.csv, image-credits.csv
 public/images/   public/models/ (compressed .glb, Draco/Meshopt)   public/og/
-scripts/verify-seo.mjs
+scripts/        verify-seo.mjs, optimize-images.mjs, render-assets.mjs
 vercel.json      redirects + headers
 ```
 

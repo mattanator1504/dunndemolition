@@ -1,0 +1,309 @@
+@import 'tailwindcss';
+
+/*
+  Dunn Demolition design tokens
+  ------------------------------------------------------------
+  Brand kept from the live site: ink, white and one safety yellow.
+  Square corners, 2px borders and hard offset shadows read as
+  "heavy-duty" without decoration. Yellow is a surface or a mark,
+  never text on white (it fails contrast there).
+
+  Motion: one signature move, the "set-down": things settle into
+  place like a slab lowered by a machine (a short rise plus a slight
+  tilt flattening out). Durations come from one scale:
+  120ms (press), 220ms (hover), 600ms (reveal), stagger 50ms.
+  Everything collapses to final states under prefers-reduced-motion.
+*/
+
+@theme {
+  --color-ink: #0a0a0a;
+  --color-paper: #ffffff;
+  --color-concrete: #f5f5f5;
+  --color-muted: #525252;
+  --color-dust: #a3a3a3; /* body text on ink, 8.4:1 */
+  --color-line-dark: #2e2e2e;
+  --color-accent: #e7b008;
+  --color-accent-deep: #b88a00;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius: 0;
+  --shadow-hard: 6px 6px 0 0 var(--color-ink);
+  --shadow-hard-sm: 4px 4px 0 0 var(--color-ink);
+  --shadow-hard-accent: 6px 6px 0 0 var(--color-accent);
+
+  --ease-out-heavy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-press: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5rem;
+    background: var(--color-ink);
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus, var(--color-ink));
+    outline-offset: 3px;
+  }
+  .on-ink {
+    --focus: var(--color-accent);
+  }
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-ink);
+  }
+  a {
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 2px;
+  }
+}
+
+@layer components {
+  .container-x {
+    width: 100%;
+    max-width: 82rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-x {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-x {
+      padding-inline: 2.5rem;
+    }
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.035em;
+    line-height: 0.86;
+  }
+  .h-section {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: clamp(2.25rem, 5.2vw, 4.25rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+  }
+  .h-card {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1.375rem;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    font-size: clamp(1.125rem, 1.6vw, 1.3rem);
+    line-height: 1.55;
+    max-width: 38rem;
+  }
+  .prose-dunn p + p {
+    margin-top: 1rem;
+  }
+  .prose-dunn {
+    max-width: 40rem;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Buttons: yellow slab with a hard shadow that "presses" on click. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3.25rem;
+    padding: 0.85rem 1.5rem;
+    border: 2px solid var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    transition:
+      transform 220ms var(--ease-out-heavy),
+      box-shadow 220ms var(--ease-out-heavy),
+      background-color 220ms var(--ease-out-heavy);
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-ink);
+    box-shadow: var(--shadow-hard);
+  }
+  .on-ink .btn-primary {
+    box-shadow: 6px 6px 0 0 var(--color-paper);
+    border-color: var(--color-accent);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: inherit;
+    border-color: currentColor;
+  }
+  @media (hover: hover) {
+    .btn-primary:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 0 var(--color-ink);
+    }
+    .on-ink .btn-primary:hover {
+      box-shadow: 8px 8px 0 0 var(--color-paper);
+    }
+    .btn-secondary:hover {
+      background: var(--color-paper);
+      color: var(--color-ink);
+      border-color: var(--color-paper);
+    }
+    .bg-paper .btn-secondary:hover,
+    .bg-concrete .btn-secondary:hover {
+      background: var(--color-ink);
+      color: var(--color-paper);
+      border-color: var(--color-ink);
+    }
+  }
+  .btn-primary:active {
+    transform: translate(4px, 4px);
+    box-shadow: 2px 2px 0 0 var(--color-ink);
+    transition-duration: 120ms;
+  }
+
+  .slab {
+    border: 2px solid var(--color-ink);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-hard);
+  }
+  .on-ink .slab {
+    border-color: var(--color-paper);
+    background: var(--color-ink);
+    box-shadow: var(--shadow-hard-accent);
+  }
+
+  .hazard {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--color-accent) 0 14px,
+      var(--color-ink) 14px 28px
+    );
+  }
+
+  .link-under {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+  .link-under:hover {
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* Photos: darkened, high-contrast, slightly desaturated to sit with the brand. */
+  .photo {
+    filter: grayscale(0.35) contrast(1.08);
+  }
+}
+
+/*
+  Reveal ("set-down"). Content is visible by default; it only starts
+  hidden once MotionRoot adds .js-motion to <html>, so the page reads
+  fully without JS and nothing is hidden from crawlers.
+*/
+.js-motion [data-reveal] {
+  opacity: 0;
+  transform: perspective(900px) translateY(28px) rotateX(-10deg);
+  transform-origin: 50% 100%;
+  transition:
+    opacity 600ms var(--ease-out-heavy),
+    transform 600ms var(--ease-out-heavy);
+  transition-delay: calc(var(--i, 0) * 50ms);
+}
+.js-motion [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Parallax photos move with transform only. */
+[data-parallax] {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js-motion [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+  [data-parallax] {
+    transform: none !important;
+  }
+}
+
+/* Native <details> accordion: the marker becomes a plus that turns into a minus. */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details .faq-icon::before,
+details .faq-icon::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 3px;
+  margin-top: -1.5px;
+  background: currentColor;
+  transition: transform 220ms var(--ease-out-heavy);
+}
+details .faq-icon::after {
+  transform: rotate(90deg);
+}
+details[open] .faq-icon::after {
+  transform: rotate(0deg);
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}

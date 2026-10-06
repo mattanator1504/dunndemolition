@@ -1,0 +1,112 @@
+{
+  "excavator-old-industrial-building": {
+    "width": 1200,
+    "height": 805,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Orange excavator working beside an old brick industrial building under a gray sky"
+  },
+  "excavator-commercial-teardown": {
+    "width": 1200,
+    "height": 800,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Excavator taking down a multi-story concrete building, floors exposed"
+  },
+  "house-demolition-excavator": {
+    "width": 1200,
+    "height": 800,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Half-demolished two-story house with an excavator and debris pile in front"
+  },
+  "gutted-interior-room": {
+    "width": 1200,
+    "height": 800,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Room stripped down to the studs during an interior gut-out"
+  },
+  "excavator-crushing-concrete": {
+    "width": 1920,
+    "height": 1382,
+    "widths": [
+      640,
+      1200,
+      1920
+    ],
+    "alt": "Excavator attachment breaking up a pile of concrete rubble"
+  },
+  "loader-filling-dump-truck": {
+    "width": 1200,
+    "height": 797,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Wheel loader dumping dirt beside a dump truck on a job site"
+  },
+  "skid-steer-site-clearing": {
+    "width": 1200,
+    "height": 802,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Tracked skid steer clearing debris beside a house"
+  },
+  "crushed-stone-closeup": {
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Close-up of gray crushed stone"
+  },
+  "concrete-rubble-stockpile": {
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Large stockpile of broken concrete and construction rubble"
+  },
+  "yellow-hard-hat": {
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Yellow hard hat resting on a wooden pallet"
+  },
+  "excavator-brick-rubble": {
+    "width": 1200,
+    "height": 900,
+    "widths": [
+      640,
+      1200
+    ],
+    "alt": "Yellow excavator sorting brick rubble from a demolished building"
+  },
+  "rubble-street-demolition": {
+    "width": 1920,
+    "height": 1166,
+    "widths": [
+      640,
+      1200,
+      1920
+    ],
+    "alt": "Excavator grapple over a pile of demolition debris between brick buildings"
+  }
+}

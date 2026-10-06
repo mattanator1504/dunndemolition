@@ -29,7 +29,18 @@ dunndemolition/
     └── image-credits.csv     every Unsplash photo used: file, photographer, source URL
 ```
 
-## Fill these before running `/rebuild-site`
+## Running it
+
+```bash
+npm install
+npm run dev                         # local dev server
+npm run build && npm run verify     # static export to /out + SEO checks (must pass)
+npx serve out -l 3000               # preview the static build; add ?3d to force the 3D on a slow machine
+npm run images                      # re-download/optimize Unsplash photos listed in data/images.json
+node scripts/render-assets.mjs      # after a build: re-render hero poster, OG image, icons; then rebuild
+```
+
+## Fill these before launch
 
 - `CLAUDE.md` → the live domain
 - `references/stats.md` → every row marked **CONFIRM** (Saturday hours, main address, current stone prices, the testimonials) and the demolition quote form ID

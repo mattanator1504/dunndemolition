@@ -24,6 +24,8 @@
 | Equipment | Caterpillar and JCB excavators with hydraulic thumbs, other Caterpillar equipment, road tractors with steel dump trailers, dump trucks, containers | ✓ |
 | Service area | Virginia, North Carolina, Maryland | ✓ |
 | Google review average / count | [FILL] | Don't publish ratings until supplied and verifiable |
+| Membership | National Demolition Association | ✓ Badge in the live site's footer. CONFIRM membership is current |
+| Payment | Visa, Mastercard, Discover, American Express | ✓ Card logos in the live site's footer |
 
 ## Timing
 

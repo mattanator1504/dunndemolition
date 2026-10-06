@@ -37,7 +37,18 @@
 
 ## Active primaries
 
-None yet. Add a block per page **before** writing it.
+**Provisional (no keyword CSV yet).** The six rebuilt pages needed a primary to write titles and H1s against, so these were picked from the live site's content and the page's job. Replace each with a CSV-backed primary once `data/keywords.csv` arrives, and log its cluster below.
+
+| Page | Provisional primary | Where it's used |
+|------|---------------------|-----------------|
+| `/` | demolition contractor Hampton Roads | title, H1 subline, meta description |
+| `/about` | demolition company Virginia Beach | title, lede, meta description |
+| `/services` | demolition services Virginia Beach | title, lede, meta description |
+| `/faqs` | demolition FAQ | title, H1 |
+| `/buy` | crushed concrete for sale | title, H1, meta description |
+| `/contact` | free demolition quote | title, H1, meta description |
+
+Add a full block per page **before** writing any new page.
 
 ### 1. `[primary keyword]` → `[/url]`
 
