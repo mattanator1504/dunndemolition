@@ -15,7 +15,13 @@ dunndemolition/
 │   ├── write-blog-post/      keyword → search-results research → post as Dunn Demolition
 │   ├── seo-audit/            checker + Lighthouse until it passes
 │   └── launch/               GitHub, Vercel, safe DNS switch, Search Console
-├── references/               voice, stats (prices, hours, addresses), stories, used keywords
+├── references/
+│   ├── voice.md              how Dunn writes: "we", plain, US English
+│   ├── humor.md              blog posts only: the jokes rules
+│   ├── opinions.md           Dunn's stated positions + what's still needed from Dunn
+│   ├── stats.md              every real number: prices, hours, addresses, crews, timings
+│   ├── stories.md            explainers now, real job stories once Dunn shares them
+│   └── used-keywords.md      one primary keyword per page, never reused
 ├── scripts/verify-seo.mjs    automatic checker (npm run verify)
 └── data/
     ├── keywords.csv          drop the keyword export here
@@ -26,9 +32,10 @@ dunndemolition/
 ## Fill these before running `/rebuild-site`
 
 - `CLAUDE.md` → the live domain
-- `references/stats.md` → the correct Saturday hours, which address goes on the Contact page, the demolition quote form ID, and whether the three testimonials are real
-- `references/stories.md` → the company history (who founded it in 1974, how it grew, the MHR Recycling yard)
-- `references/voice.md` → how Dunn talks to customers
+- `references/stats.md` → every row marked **CONFIRM** (Saturday hours, main address, current stone prices, the testimonials) and the demolition quote form ID
+- `references/stories.md` → a 20-minute call with Dunn for the origin story and real job stories
+- `references/opinions.md` → Dunn's own trade and Hampton Roads takes (optional, for the blog)
+- `references/voice.md` → who (if anyone) is named as Dunn's spokesperson
 - `data/keywords.csv` → your keyword export
 - The logo file and any real job, crew or equipment photos (these replace stock)
 

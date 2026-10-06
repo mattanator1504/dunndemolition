@@ -15,6 +15,7 @@ This rebuilds the current single-page-app site as a static Next.js site with 3D 
 |-------------|------|
 | Do anything | this file |
 | Write any words a visitor will read | `references/voice.md` → `stats.md` → `stories.md` |
+| Write a blog post | the row above, plus `references/humor.md` → `opinions.md` (blog only, never on site pages) |
 | Pick a keyword | `references/used-keywords.md` |
 | Build or edit any page | `on-page-seo.md` |
 | Touch layout, 3D, motion, config, scripts, redirects or deploy | `technical-seo.md` |
@@ -114,7 +115,7 @@ lib/
   site.ts        single source of truth that mirrors references/stats.md
   seo.ts         buildMetadata() + schema builders
   content.ts     loaders used by pages AND sitemap
-references/      voice, stats, stories, used-keywords
+references/      voice, humor (blog only), opinions, stats, stories, used-keywords
 data/            keywords.csv, url-inventory.csv, image-credits.csv
 public/images/   public/models/ (compressed .glb, Draco/Meshopt)   public/og/
 scripts/verify-seo.mjs
