@@ -32,6 +32,15 @@ This rebuilds the current single-page-app site as a static Next.js site with 3D 
 | `seo-audit` | Run the checker and Lighthouse and fix everything until it passes |
 | `launch` | Push to GitHub, deploy, switch the domain safely, set up Search Console and Google Business Profile links |
 
+**Design skills (third-party, from `aicodedecode/awesome-muse-skills`):**
+
+| Skill | Use it to |
+|-------|-----------|
+| `motion-designer` | Plan the timing, easing, stagger and reduced-motion variant of every animation before coding it |
+| `threejs-scenes` | Plan the 3D hero: composition, scroll choreography, budgets, fallbacks |
+
+They're general guides. Where they differ from this file or `technical-seo.md` §4, this project wins. For example, `threejs-scenes` allows a 3 MB hero, but our budget is ≤ 1 MB per model and ≤ 250 KB of 3D JS.
+
 ---
 
 ## Non-negotiables

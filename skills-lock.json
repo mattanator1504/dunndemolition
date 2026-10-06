@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "motion-designer": {
+      "source": "aicodedecode/awesome-muse-skills",
+      "sourceType": "github",
+      "skillPath": "skills/motion-designer/SKILL.md",
+      "computedHash": "4c73fcc2a7efb3f03b3bf3c4df596fd47316dea260edb0e3a090b93c8f09261c"
+    }
+  }
+}
