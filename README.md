@@ -1,6 +1,6 @@
 # Dunn Demolition — site kit
 
-Everything Claude Code needs to rebuild the Dunn Demolition website as a fast, fully SEO-optimised static site with 3D and scroll motion, and later to add service pages, service-area pages and blog posts quickly.
+Everything Claude Code needs to rebuild the Dunn Demolition website as a fast, fully SEO-optimized static site with 3D and scroll motion, and later to add service pages, service-area pages and blog posts quickly.
 
 ```
 dunndemolition/
