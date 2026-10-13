@@ -15,6 +15,7 @@ export function ProcessTimeline({ children }: { children: React.ReactNode }) {
     if (!matchMedia('(min-width: 1024px)').matches) return;
 
     let ctx: { revert: () => void } | undefined;
+    let offLenis: (() => void) | undefined;
     let cancelled = false;
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -35,8 +36,8 @@ export function ProcessTimeline({ children }: { children: React.ReactNode }) {
               tl.to(s, { opacity: 1, y: 0, rotateX: 0, ease: 'power3.out', duration: 0.8 }, i * 0.9);
             });
           }, el);
-          const lenis = (window as unknown as { __lenis?: { on: (e: string, f: () => void) => void } }).__lenis;
-          lenis?.on('scroll', ScrollTrigger.update);
+          const lenis = (window as unknown as { __lenis?: { on: (e: 'scroll', f: () => void) => () => void } }).__lenis;
+          offLenis = lenis?.on('scroll', ScrollTrigger.update);
         });
       },
       { rootMargin: '600px 0px' },
@@ -45,6 +46,7 @@ export function ProcessTimeline({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
       io.disconnect();
+      offLenis?.();
       ctx?.revert();
     };
   }, []);
