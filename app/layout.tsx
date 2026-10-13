@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Space_Grotesk, DM_Sans } from 'next/font/google';
+import { Archivo, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { site } from '@/lib/site';
 import { businessSchema, websiteSchema } from '@/lib/seo';
@@ -9,10 +9,13 @@ import { Footer } from '@/components/site/Footer';
 import { SkipLink } from '@/components/site/SkipLink';
 import { MotionRoot } from '@/components/motion/MotionRoot';
 import { motionBootScript } from '@/components/motion/motionBoot';
+import { DustFX } from '@/components/fx/DustFX';
+import { RouteCurtain } from '@/components/fx/RouteCurtain';
 
 // Two variable families = two font files (technical-seo.md §3).
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap' });
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans', display: 'swap' });
+// Archivo carries the width axis: expanded for display type, normal width for body.
+const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], variable: '--font-archivo', display: 'swap' });
+const mono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-jbmono', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -25,14 +28,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0A0A0A',
+  themeColor: '#121211',
   width: 'device-width',
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-US" className={`${spaceGrotesk.variable} ${dmSans.variable}`} suppressHydrationWarning>
+    <html lang="en-US" className={`${archivo.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: motionBootScript }} />
       </head>
@@ -42,6 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main">{children}</main>
         <Footer />
         <MotionRoot />
+        <DustFX />
+        <RouteCurtain />
         <JsonLd data={businessSchema()} />
         <JsonLd data={websiteSchema()} />
       </body>

@@ -1,17 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import type { HeroSceneHandle } from './HeroScene';
 
 // Decides whether and when the 3D wall loads (technical-seo.md §4):
 // - never under reduced motion, Save-Data, no WebGL, small screens or low-power devices
 // - otherwise on the first user interaction, or once the page has been idle a while
 // The poster (same framing as the scene's first frame) is always rendered first.
-// Live, the canvas is a fixed, click-through layer over the whole viewport: the building is
-// drawn inside the hero's box, and debris falls down the page edges to the footer.
-// Under html.js-pin the hero is a tall track with a sticky stage; progress runs across the
-// track up to where the next section starts sliding over, and the building is clipped there.
+// The canvas fills the hero's scene box (click-through). Under html.js-pin the hero is a
+// tall track with a sticky stage; progress runs across the track up to where the rest of
+// the page starts sliding over it.
 
 function canRun3D() {
   if (typeof window === 'undefined') return false;
@@ -77,24 +75,28 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
     let handle: HeroSceneHandle | undefined;
     let disposed = false;
     let raf = 0;
+    let ro: ResizeObserver | undefined;
     const poster = new URLSearchParams(location.search).has('poster');
     const hero = document.getElementById(heroId);
 
-    const footer = document.querySelector('footer');
-    const next = hero?.nextElementSibling ?? null;
     const header = document.querySelector('header');
+    const pctEl = hero?.querySelector<HTMLElement>('[data-hero-pct]') ?? null;
     const sync = () => {
       if (!hero || !handle || !boxRef.current) return;
       const r = hero.getBoundingClientRect();
-      const b = boxRef.current.getBoundingClientRect();
       const headerH = header?.offsetHeight ?? 0;
       const stage = innerHeight - headerH;
       // Pinned: the track minus the stage, minus the stretch where the rest of the page slides over.
       const travel = r.height - 2 * stage;
-      handle.setProgress(travel > stage * 0.5 ? (headerH - r.top) / travel : -r.top / (r.height * 0.8));
-      handle.setBox({ left: b.left, top: b.top, width: b.width, height: b.height });
-      handle.setClip(next ? next.getBoundingClientRect().top : null);
-      handle.setPage(window.scrollY, footer ? footer.getBoundingClientRect().top : null);
+      const p = Math.min(1, Math.max(0, travel > stage * 0.5 ? (headerH - r.top) / travel : -r.top / (r.height * 0.8)));
+      handle.setProgress(p);
+      // Site log readout (Hero.tsx): which beat we're in, the bar, and the percentage.
+      const beat = String(p < 0.04 ? 0 : p < 0.3 ? 1 : p < 0.8 ? 2 : 3);
+      if (hero.dataset.beat !== beat) hero.dataset.beat = beat;
+      hero.style.setProperty('--p', p.toFixed(3));
+      const pct = `${Math.round(p * 100)}%`;
+      if (pctEl && pctEl.textContent !== pct) pctEl.textContent = pct;
+
     };
     const onScroll = () => {
       cancelAnimationFrame(raf);
@@ -129,6 +131,8 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('pointermove', onPointer, { passive: true });
       window.addEventListener('resize', onResize);
+      ro = new ResizeObserver(onResize);
+      if (boxRef.current) ro.observe(boxRef.current);
       document.addEventListener('visibilitychange', onVisibility);
     });
 
@@ -138,28 +142,23 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('resize', onResize);
+      ro?.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       handle?.dispose();
       hero?.removeAttribute('data-scene');
     };
   }, [active, heroId]);
 
-  const poster = typeof location !== 'undefined' && location.search.includes('poster');
-  const canvas = active && (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className={
-        poster
-          ? 'absolute inset-0 h-full w-full'
-          : 'pointer-events-none fixed inset-0 z-40 h-[100lvh] w-full transition-opacity duration-700'
-      }
-      style={{ opacity: shown || poster ? 1 : 0 }}
-    />
-  );
   return (
     <div ref={boxRef} className="absolute inset-0" aria-hidden="true">
-      {canvas && (poster ? canvas : createPortal(canvas, document.body))}
+      {active && (
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full transition-opacity duration-700"
+          style={{ opacity: shown || (typeof location !== 'undefined' && location.search.includes('poster')) ? 1 : 0 }}
+        />
+      )}
     </div>
   );
 }

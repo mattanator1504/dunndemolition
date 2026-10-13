@@ -1,47 +1,46 @@
 @import 'tailwindcss';
 
 /*
-  Dunn Demolition design tokens
+  Dunn Demolition design system: "Site log"
   ------------------------------------------------------------
-  Brand kept from the live site: ink, white and one safety yellow.
-  Square corners, 2px borders and hard offset shadows read as
-  "heavy-duty" without decoration. Yellow is a surface or a mark,
-  never text on white (it fails contrast there).
-
-  Motion: one signature move, the "set-down": things settle into
-  place like a slab lowered by a machine (a short rise plus a slight
-  tilt flattening out). Durations come from one scale:
-  120ms (press), 220ms (hover), 600ms (reveal), stagger 50ms.
-  Everything collapses to final states under prefers-reduced-motion.
+  An engineer's spec sheet crossed with hi-vis site signage.
+  - Surfaces: concrete paper (light) against near-black ink. Photos run black and white.
+  - Colour: one hi-vis yellow, used as a field or a mark, never as text on paper.
+  - Type: Archivo, pushed wide (font-stretch 112-125%) and heavy for display; normal
+    width for reading. JetBrains Mono for spec labels, numbers and the site log.
+  - Lines: 1px hairlines and blueprint column guides instead of borders and shadows.
+    The old hazard stripe is now a tape-measure rule (.hazard).
+  - Motion: things rise out of a mask on a long expo ease (900ms), hovers are 220ms,
+    presses 120ms. Everything collapses to final states under prefers-reduced-motion.
 */
 
 @theme {
-  --color-ink: #0a0a0a;
-  --color-paper: #ffffff;
-  --color-concrete: #f5f5f5;
-  --color-muted: #525252;
-  --color-dust: #a3a3a3; /* body text on ink, 8.4:1 */
-  --color-line-dark: #2e2e2e;
-  --color-accent: #e7b008;
-  --color-accent-deep: #b88a00;
+  --color-ink: #121211;
+  --color-ink-2: #1b1a18;
+  --color-paper: #e7e4dd;
+  --color-concrete: #dad6cd;
+  --color-muted: #57544e; /* on paper, 6:1 */
+  --color-dust: #a6a299; /* on ink, 7.4:1 */
+  --color-line: #1212112b;
+  --color-line-dark: #2c2b28;
+  --color-accent: #ffb800;
+  --color-accent-deep: #c78f00;
 
-  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jbmono), ui-monospace, Menlo, monospace;
 
-  /* Small caps labels need air: Tailwind's default 0.025em reads cramped at text-sm. */
+  /* Small caps labels need air. */
   --tracking-wide: 0.07em;
 
-  /* Fine static grain for ink surfaces, so large black areas read as material, not a void.
-     One tiny SVG tile, painted once; no overlay, no blend mode, no cost on scroll. */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-
   --radius: 0;
-  --shadow-hard: 6px 6px 0 0 var(--color-ink);
-  --shadow-hard-sm: 4px 4px 0 0 var(--color-ink);
-  --shadow-hard-accent: 6px 6px 0 0 var(--color-accent);
 
-  --ease-out-heavy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out-heavy: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-press: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Fine static grain, one tiny SVG tile, painted once (no overlay, no blend mode). */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 @layer base {
@@ -64,7 +63,7 @@
   h3,
   h4 {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 800;
     line-height: 0.95;
     letter-spacing: -0.02em;
     text-wrap: balance;
@@ -73,29 +72,26 @@
     text-wrap: pretty;
   }
   :focus-visible {
-    outline: 3px solid var(--focus, var(--color-ink));
+    outline: 2px solid var(--focus, var(--color-ink));
     outline-offset: 3px;
   }
   .on-ink {
     --focus: var(--color-accent);
-  }
-  .on-ink.bg-ink {
-    background-image: var(--grain);
   }
   ::selection {
     background: var(--color-accent);
     color: var(--color-ink);
   }
   a {
-    text-underline-offset: 0.18em;
-    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
   }
 }
 
 @layer components {
   .container-x {
     width: 100%;
-    max-width: 82rem;
+    max-width: 90rem;
     margin-inline: auto;
     padding-inline: 1rem;
   }
@@ -110,32 +106,72 @@
     }
   }
 
+  /* Surfaces carry grain: light specks on ink, dark specks on paper. */
+  .on-ink.bg-ink,
+  .on-ink.bg-ink-2 {
+    background-image: var(--grain);
+  }
+  .bg-paper,
+  .bg-concrete {
+    background-image: var(--grain-dark);
+  }
+
+  /* Blueprint column guides: 12 hairline columns inside the container. */
+  .guides {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to right, var(--guide, var(--color-line)) 1px, transparent 1px);
+    background-size: calc(100% / 6) 100%;
+    border-right: 1px solid var(--guide, var(--color-line));
+  }
+  .on-ink .guides {
+    --guide: #ffffff0d;
+  }
+  @media (min-width: 1024px) {
+    .guides {
+      background-size: calc(100% / 12) 100%;
+    }
+  }
+
   .display {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 900;
+    font-stretch: 125%;
     text-transform: uppercase;
-    letter-spacing: -0.035em;
-    line-height: 0.86;
+    letter-spacing: -0.03em;
+    line-height: 0.84;
   }
   .h-section {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 800;
+    font-stretch: 118%;
     text-transform: uppercase;
-    font-size: clamp(2.25rem, 5.2vw, 4.25rem);
-    line-height: 0.9;
-    letter-spacing: -0.03em;
+    font-size: clamp(2.3rem, 5.4vw, 5.25rem);
+    line-height: 0.88;
+    letter-spacing: -0.025em;
   }
   .h-card {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 750;
+    font-stretch: 112%;
     text-transform: uppercase;
     font-size: 1.375rem;
-    line-height: 1.05;
+    line-height: 1.02;
     letter-spacing: -0.01em;
   }
+  /* Spec labels: mono, small caps, tracked out. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
   .lede {
-    font-size: clamp(1.125rem, 1.6vw, 1.3rem);
-    line-height: 1.55;
+    font-size: clamp(1.125rem, 1.45vw, 1.3rem);
+    line-height: 1.5;
     max-width: 38rem;
   }
   .prose-dunn p + p {
@@ -148,124 +184,165 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Buttons: yellow slab with a hard shadow that "presses" on click. */
+  /* Buttons: a solid slab whose fill rises from the bottom edge on hover. */
   .btn {
+    --btn-fill: var(--color-ink);
+    --btn-fill-ink: var(--color-paper);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.6rem;
-    min-height: 3.25rem;
+    gap: 0.75rem;
+    min-height: 3.5rem;
     padding: 0.85rem 1.5rem;
-    border: 2px solid var(--color-ink);
+    border: 1px solid currentColor;
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1rem;
+    font-weight: 750;
+    font-stretch: 112%;
+    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.01em;
     text-decoration: none;
     transition:
-      transform 220ms var(--ease-out-heavy),
-      box-shadow 220ms var(--ease-out-heavy),
-      background-color 220ms var(--ease-out-heavy);
+      color 220ms var(--ease-out-heavy),
+      transform 120ms var(--ease-press);
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--btn-fill);
+    transform: scaleY(0);
+    transform-origin: 50% 100%;
+    transition: transform 380ms var(--ease-out-heavy);
   }
   .btn-primary {
     background: var(--color-accent);
+    border-color: var(--color-accent);
     color: var(--color-ink);
-    box-shadow: var(--shadow-hard);
+  }
+  .btn-primary::after {
+    content: '→';
+    font-family: var(--font-mono);
+    font-weight: 500;
+    transition: transform 380ms var(--ease-out-heavy);
   }
   .on-ink .btn-primary {
-    box-shadow: 6px 6px 0 0 var(--color-paper);
-    border-color: var(--color-accent);
+    --btn-fill: var(--color-paper);
+    --btn-fill-ink: var(--color-ink);
   }
   .btn-secondary {
     background: transparent;
     color: inherit;
-    border-color: currentColor;
+  }
+  .on-ink .btn-secondary {
+    --btn-fill: var(--color-paper);
+    --btn-fill-ink: var(--color-ink);
   }
   @media (hover: hover) {
-    .btn-primary:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 8px 8px 0 0 var(--color-ink);
+    .btn:hover {
+      color: var(--btn-fill-ink);
     }
-    .on-ink .btn-primary:hover {
-      box-shadow: 8px 8px 0 0 var(--color-paper);
+    .btn:hover::before {
+      transform: scaleY(1);
     }
-    .btn-secondary:hover {
-      background: var(--color-paper);
-      color: var(--color-ink);
-      border-color: var(--color-paper);
-    }
-    .bg-paper .btn-secondary:hover,
-    .bg-concrete .btn-secondary:hover {
-      background: var(--color-ink);
-      color: var(--color-paper);
-      border-color: var(--color-ink);
+    .btn-primary:hover::after {
+      transform: translateX(4px);
     }
   }
-  .btn-primary:active {
-    transform: translate(4px, 4px);
-    box-shadow: 2px 2px 0 0 var(--color-ink);
-    transition-duration: 120ms;
-  }
-  .on-ink .btn-primary:active {
-    box-shadow: 2px 2px 0 0 var(--color-paper);
-  }
-  .btn-secondary:active {
-    transform: translateY(2px);
-    transition-duration: 120ms;
+  .btn:active {
+    transform: scale(0.98);
   }
 
+  /* Cards: hairline frames, no shadows. */
   .slab {
-    border: 2px solid var(--color-ink);
-    background: var(--color-paper);
-    box-shadow: var(--shadow-hard);
+    border: 1px solid var(--color-line);
+    background: transparent;
   }
   .on-ink .slab {
-    border-color: var(--color-paper);
-    background: var(--color-ink);
-    box-shadow: var(--shadow-hard-accent);
+    border-color: var(--color-line-dark);
   }
 
+  /* Tape-measure rule: hi-vis tape with inch ticks and a long tick every ten. */
   .hazard {
-    background-image: repeating-linear-gradient(
-      -45deg,
-      var(--color-accent) 0 14px,
-      var(--color-ink) 14px 28px
-    );
+    background-color: var(--color-accent);
+    background-image:
+      repeating-linear-gradient(90deg, var(--color-ink) 0 1px, transparent 1px 10px),
+      repeating-linear-gradient(90deg, var(--color-ink) 0 2px, transparent 2px 100px);
+    background-size:
+      100% 35%,
+      100% 70%;
+    background-repeat: no-repeat;
+    background-position: 0 0;
   }
 
   .link-under {
     text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 220ms;
   }
   .link-under:hover {
     text-decoration-color: var(--color-accent);
   }
+  /* A link that draws its underline in from the left. */
+  .link-draw {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    transition: background-size 420ms var(--ease-out-heavy);
+  }
+  .link-draw:hover,
+  .link-draw:focus-visible {
+    background-size: 100% 1px;
+  }
 
-  /* Photos: darkened, high-contrast, slightly desaturated to sit with the brand. */
+  /* Photos: black and white, a touch of extra contrast, so stock reads as one shoot. */
   .photo {
-    filter: grayscale(0.35) contrast(1.08);
+    filter: grayscale(1) contrast(1.12) brightness(0.92);
   }
 }
 
 /*
-  Reveal ("set-down"). Content is visible by default; it only starts
-  hidden once MotionRoot adds .js-motion to <html>, so the page reads
-  fully without JS and nothing is hidden from crawlers.
+  Reveal: content is visible by default; it only starts hidden once MotionRoot adds
+  .js-motion to <html>, so the page reads fully without JS and nothing is hidden from crawlers.
 */
 .js-motion [data-reveal] {
   opacity: 0;
-  transform: perspective(900px) translateY(28px) rotateX(-10deg);
-  transform-origin: 50% 100%;
+  transform: translateY(36px);
   transition:
-    opacity 600ms var(--ease-out-heavy),
-    transform 600ms var(--ease-out-heavy);
-  transition-delay: calc(var(--i, 0) * 50ms);
+    opacity 900ms var(--ease-out-heavy),
+    transform 900ms var(--ease-out-heavy);
+  transition-delay: calc(var(--i, 0) * 70ms);
 }
 .js-motion [data-reveal].is-in {
   opacity: 1;
   transform: none;
+}
+/* Block reveals stay put; their cover of blocks does the moving. */
+.js-motion [data-reveal='blocks'] {
+  opacity: 1;
+  transform: none;
+}
+/* Images open like a shutter going up. */
+.js-motion [data-reveal='shutter'] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1100ms var(--ease-out-heavy);
+}
+.js-motion [data-reveal='shutter'].is-in {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Scroll-lit words: MotionRoot sets --lit (0..1) per word as the paragraph crosses the screen. */
+[data-words] .w {
+  opacity: calc(0.16 + var(--lit, 1) * 0.84);
+  transition: opacity 200ms linear;
 }
 
 /* Parallax photos move with transform only. */
@@ -285,9 +362,13 @@
   .js-motion [data-reveal] {
     opacity: 1;
     transform: none;
+    clip-path: none;
   }
   [data-parallax] {
     transform: none !important;
+  }
+  [data-words] .w {
+    opacity: 1;
   }
 }
 
@@ -304,16 +385,21 @@ details .faq-icon::after {
   content: '';
   position: absolute;
   inset: 50% 0 auto 0;
-  height: 3px;
-  margin-top: -1.5px;
+  height: 2px;
+  margin-top: -1px;
   background: currentColor;
-  transition: transform 220ms var(--ease-out-heavy);
+  transition: transform 300ms var(--ease-out-heavy);
 }
 details .faq-icon::after {
   transform: rotate(90deg);
 }
 details[open] .faq-icon::after {
   transform: rotate(0deg);
+}
+
+/* Marquee: MotionRoot drives --x; without JS it just sits still. */
+[data-marquee] {
+  will-change: transform;
 }
 
 /* Lenis smooth scroll */
@@ -323,4 +409,93 @@ html.lenis body {
 }
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
+}
+
+/* Ink button: for hi-vis fields, where a yellow button would vanish. */
+@layer components {
+  .btn-ink {
+    --btn-fill: var(--color-paper);
+    --btn-fill-ink: var(--color-ink);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+  .btn-ink::after {
+    content: '→';
+    font-family: var(--font-mono);
+    font-weight: 500;
+    transition: transform 380ms var(--ease-out-heavy);
+  }
+  @media (hover: hover) {
+    .btn-ink:hover::after {
+      transform: translateX(4px);
+    }
+  }
+}
+
+/* Bricklaid headings: letters (Split → .ch) drop into place, one after another, with a
+   little settle, once their [data-reveal] block comes into view. */
+.js-motion [data-reveal] .ch {
+  opacity: 0;
+  transform: translateY(-0.7em) rotate(var(--r, 0deg));
+  transition:
+    opacity 300ms ease-out,
+    transform 650ms cubic-bezier(0.34, 1.45, 0.64, 1);
+  transition-delay: calc(var(--ci, 0) * 22ms + 80ms);
+}
+.js-motion [data-reveal].is-in .ch {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js-motion [data-reveal] .ch {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Block reveal: MotionRoot covers the photo with a grid of blocks that tumble away. */
+.blocks {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  pointer-events: none;
+}
+.blocks > i {
+  background: var(--block-bg, var(--color-ink));
+  outline: 1px solid var(--block-bg, var(--color-ink));
+  transition:
+    transform 850ms cubic-bezier(0.55, 0, 0.8, 0.25),
+    opacity 850ms ease-in;
+  transition-delay: var(--bd, 0ms);
+}
+.blocks.go > i {
+  transform: translate(var(--bx, 0), 260%) rotate(var(--br, 0deg));
+  opacity: 0;
+}
+
+/* Page transition wall (RouteCurtain). Idle: slabs parked above the viewport. */
+.curtain > i {
+  flex: 1;
+  margin-right: -1px;
+  background-color: var(--color-ink);
+  background-image: var(--grain);
+  border-bottom: 6px solid var(--color-accent);
+  transform: translateY(-101%);
+  visibility: hidden;
+}
+.curtain[data-state='cover'] > i {
+  visibility: visible;
+  transform: none;
+  transition: transform 380ms cubic-bezier(0.7, 0, 0.84, 0);
+  transition-delay: calc(var(--si) * 18ms);
+}
+.curtain[data-state='fall'] > i {
+  visibility: visible;
+  transform: translateY(115%) rotate(var(--sr));
+  transition: transform 720ms cubic-bezier(0.55, 0, 0.8, 0.25);
+  transition-delay: calc((7 - var(--si)) * 26ms);
 }

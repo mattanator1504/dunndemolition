@@ -31,7 +31,7 @@ export default function ContactPage() {
             <SectionHead id="form-title" title="Talk to us" />
             <dl className="mt-10 grid gap-8" data-reveal>
               <div>
-                <dt className="font-display text-sm font-bold uppercase tracking-wide text-muted">Demolition jobs and stone crushing</dt>
+                <dt className="label text-muted">Demolition jobs and stone crushing</dt>
                 <dd>
                   <a href={site.phone.href} className="num font-display text-3xl font-bold hover:underline">
                     {site.phone.display}
@@ -40,7 +40,7 @@ export default function ContactPage() {
                 </dd>
               </div>
               <div>
-                <dt className="font-display text-sm font-bold uppercase tracking-wide text-muted">MHR Recycling</dt>
+                <dt className="label text-muted">MHR Recycling</dt>
                 <dd>
                   <a href={site.recyclingPhone.href} className="num font-display text-3xl font-bold hover:underline">
                     {site.recyclingPhone.display}
@@ -49,7 +49,7 @@ export default function ContactPage() {
                 </dd>
               </div>
               <div>
-                <dt className="font-display text-sm font-bold uppercase tracking-wide text-muted">Email</dt>
+                <dt className="label text-muted">Email</dt>
                 <dd>
                   <a href={`mailto:${site.email}`} className="link-under break-all text-lg">
                     {site.email}
@@ -57,13 +57,13 @@ export default function ContactPage() {
                 </dd>
               </div>
               <div>
-                <dt className="font-display text-sm font-bold uppercase tracking-wide text-muted">Hours</dt>
+                <dt className="label text-muted">Hours</dt>
                 <dd className="text-lg">
                   {site.hours[0].days}, {site.hours[0].label}
                 </dd>
               </div>
               <div>
-                <dt className="font-display text-sm font-bold uppercase tracking-wide text-muted">Service area</dt>
+                <dt className="label text-muted">Service area</dt>
                 <dd className="text-lg">Virginia, North Carolina and Maryland</dd>
               </div>
             </dl>

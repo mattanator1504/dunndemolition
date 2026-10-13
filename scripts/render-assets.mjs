@@ -50,30 +50,33 @@ try {
   const og = await browser.newPage({ viewport: { width: 1200, height: 630 } });
   const posterB64 = (await fs.readFile(path.join(root, 'public/images/hero-wall-poster.webp'))).toString('base64');
   await og.setContent(`<!doctype html><html><head>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=DM+Sans:wght@500&display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,900&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
     <style>
-      *{margin:0;box-sizing:border-box} body{width:1200px;height:630px;background:#0A0A0A;color:#fff;font-family:'DM Sans';position:relative;overflow:hidden}
-      .wall{position:absolute;right:-60px;top:40px;width:720px}
-      .glow{position:absolute;right:0;top:0;width:800px;height:630px;background:radial-gradient(55% 55% at 55% 45%,rgba(231,176,8,.18),transparent 70%)}
-      .txt{position:absolute;left:64px;top:70px;width:640px}
-      .tag{display:inline-block;border:3px solid #E7B008;color:#E7B008;font:700 22px 'Space Grotesk';text-transform:uppercase;padding:6px 14px;letter-spacing:.02em}
-      h1{font:700 118px/0.86 'Space Grotesk';text-transform:uppercase;letter-spacing:-.035em;margin-top:34px}
-      h1 span{color:#E7B008}
-      p{font:700 30px/1.15 'Space Grotesk';text-transform:uppercase;margin-top:30px;color:#fff;width:560px}
-      .haz{position:absolute;left:0;right:0;bottom:0;height:22px;background:repeating-linear-gradient(-45deg,#E7B008 0 18px,#0A0A0A 18px 36px)}
+      *{margin:0;box-sizing:border-box} body{width:1200px;height:630px;background:#121211;color:#e7e4dd;position:relative;overflow:hidden}
+      .guides{position:absolute;inset:0 64px;background-image:linear-gradient(to right,#ffffff0d 1px,transparent 1px);background-size:calc(100%/12) 100%}
+      .wall{position:absolute;right:-10px;top:70px;width:560px}
+      .glow{position:absolute;right:0;top:0;width:700px;height:630px;background:radial-gradient(50% 50% at 55% 55%,rgba(255,184,0,.16),transparent 70%)}
+      .txt{position:absolute;left:64px;top:64px;width:700px}
+      .tag{font:500 17px 'JetBrains Mono';letter-spacing:.14em;text-transform:uppercase;color:#a6a299}
+      .tag b{color:#FFB800;font-weight:500}
+      h1{font:900 112px/0.84 'Archivo';font-stretch:125%;text-transform:uppercase;letter-spacing:-.03em;margin-top:120px}
+      h1 span{color:#FFB800}
+      p{font:500 17px 'JetBrains Mono';letter-spacing:.14em;text-transform:uppercase;margin-top:34px;color:#a6a299}
+      .tape{position:absolute;left:0;right:0;bottom:0;height:20px;background-color:#FFB800;background-image:repeating-linear-gradient(90deg,#121211 0 1px,transparent 1px 10px),repeating-linear-gradient(90deg,#121211 0 2px,transparent 2px 100px);background-size:100% 35%,100% 70%;background-repeat:no-repeat}
     </style></head><body>
-      <div class="glow"></div><img class="wall" src="data:image/webp;base64,${posterB64}">
-      <div class="txt"><span class="tag">Since 1974 · VA Class A</span><h1>We break it <span>down.</span></h1><p>Dunn Demolition<br>Hampton Roads, Virginia</p></div>
-      <div class="haz"></div></body></html>`);
+      <div class="guides"></div><div class="glow"></div><img class="wall" src="data:image/webp;base64,${posterB64}">
+      <div class="txt"><div class="tag"><b>●</b> Est. 1974 · Virginia Class A Contractor</div><h1>We break<br>it <span>down.</span></h1><p>Dunn Demolition · Hampton Roads, VA</p></div>
+      <div class="tape"></div></body></html>`);
   await og.waitForLoadState('networkidle');
   await og.evaluate(() => document.fonts.ready);
   await og.screenshot({ path: path.join(root, 'public/og/default.png') });
   console.log('og image done');
 
   const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 34 34">
-    <rect width="34" height="34" fill="#0A0A0A"/><rect x="3" y="3" width="28" height="28" fill="#E7B008"/>
-    <rect x="7.5" y="19.5" width="8" height="7" fill="#0A0A0A"/><rect x="17.5" y="19.5" width="9" height="7" fill="#0A0A0A"/>
-    <rect x="7.5" y="10.5" width="11" height="7" fill="#0A0A0A"/><rect x="20" y="8" width="7" height="7" fill="#0A0A0A" transform="rotate(18 23.5 11.5)"/></svg>`;
+    <rect width="34" height="34" fill="#FFB800"/><g fill="#121211">
+    <rect x="5" y="23" width="11" height="6"/><rect x="18" y="23" width="11" height="6"/>
+    <rect x="5" y="15" width="5" height="6"/><rect x="12" y="15" width="11" height="6"/>
+    <rect x="22" y="6" width="9" height="6" transform="rotate(24 26.5 9)"/></g></svg>`;
   await sharp(Buffer.from(iconSvg)).resize(512).png().toFile(path.join(root, 'app/icon.png'));
   await sharp(Buffer.from(iconSvg)).resize(180).png().toFile(path.join(root, 'app/apple-icon.png'));
   console.log('icons done');

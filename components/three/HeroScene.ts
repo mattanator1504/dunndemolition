@@ -1,13 +1,10 @@
 // The home page's 3D: a three-story concrete-frame building that comes down as you
-// scroll through the pinned hero, then chunks tumble down the page edges and land
-// in a pile on the footer.
+// scroll through the pinned hero.
 // The hero's scroll progress (0..1) runs three beats:
 //   0.04-0.30  the excavator takes the top front corner off
 //   0.30-0.80  the floors pancake, columns topple, the infill crumbles into a heap
 //   0.80-1.00  the dust settles and the camera drops to the rubble
-// One canvas, one WebGL context, two passes per frame:
-//   1. the building, drawn into the hero's scene box (same framing as the poster)
-//   2. the falling debris, drawn across the whole viewport
+// One canvas inside the hero's scene box, one WebGL context (same framing as the poster).
 // Plain three.js to stay inside the 3D budget in technical-seo.md §4.
 // Loaded only through HeroSceneMount, never in the initial bundle.
 import {
@@ -110,11 +107,6 @@ export const FRAME_ASPECT = (() => {
 
 const ACCENT = new Color('#E7B008');
 
-// Trail chunks reuse the old wall's block proportions.
-const BW = 1.2;
-const BH = 0.58;
-const BD = 0.62;
-
 type Piece = {
   base: Vector3;
   size: Vector3;
@@ -183,26 +175,11 @@ export type HeroSceneHandle = {
   setClip: (bottom: number | null) => void;
   /** Demolition progress, 0..1. */
   setProgress: (p: number) => void;
-  /** Page scroll in px and the footer's top edge on screen, for the falling debris. */
-  setPage: (scrollY: number, footerTop: number | null) => void;
   setPointer: (x: number, y: number) => void;
   setRunning: (on: boolean) => void;
   renderOnce: () => void;
   resize: () => void;
   dispose: () => void;
-};
-
-// Falling debris: a few chunks per side of the page, landing in a pile on the footer.
-const TRAIL = 12;
-
-type Chunk = {
-  side: -1 | 1;
-  x: number; // 0..1 across that side's gutter
-  phase: number; // 0..1 starting point in the fall loop
-  speed: number; // falls this many viewports per viewport scrolled
-  spin: Vector3;
-  size: number; // px width on screen
-  pile: { x: number; y: number; rz: number; ry: number }; // resting slot: x in vw fraction, y in rows above the footer
 };
 
 function smoothstep(a: number, b: number, x: number) {
@@ -415,44 +392,10 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
   dust.frustumCulled = false;
   scene.add(dust);
 
-  // ---------- Pass 2: falling debris across the page ----------
-  const trailScene = new Scene();
-  const trailCam = new PerspectiveCamera(FOV, 1, 0.1, 100);
-  const TRAIL_D = 24;
-  trailCam.position.set(0, 0, TRAIL_D);
-  addLights(trailScene);
-  const trailGeo = new BoxGeometry(BW, BH, BD);
-  const trailMesh = new InstancedMesh(trailGeo, mat, TRAIL);
-  trailMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-  trailMesh.frustumCulled = false;
-  trailScene.add(trailMesh);
-
-  // Pile: 5 on the bottom row, 4, then 3, offset like a dumped heap, right of center.
-  const pileSlots: { x: number; y: number }[] = [];
-  [5, 4, 3].forEach((n, row) => {
-    for (let k = 0; k < n; k++) pileSlots.push({ x: 0.66 + (k - (n - 1) / 2) * 0.052 + row * 0.012, y: row });
-  });
-  const chunks: Chunk[] = [];
-  for (let i = 0; i < TRAIL; i++) {
-    const slot = pileSlots[i];
-    chunks.push({
-      side: i % 2 ? 1 : -1,
-      x: rand(),
-      phase: rand(),
-      speed: 1.25 + rand() * 0.6,
-      spin: new Vector3((rand() - 0.5) * 9, (rand() - 0.5) * 9, (rand() - 0.5) * 6),
-      size: 48 + rand() * 34,
-      pile: { x: slot.x, y: slot.y, rz: (rand() - 0.5) * 0.35, ry: (rand() - 0.5) * 0.9 },
-    });
-    trailMesh.setColorAt(i, i === 4 || i === 9 ? ACCENT : tone.setHSL(0.09, 0.03, 0.42 + rand() * 0.18));
-  }
-
   const m = new Matrix4();
   const q = new Quaternion();
-  const qRest = new Quaternion();
   const e = new Euler();
   const p = new Vector3();
-  const sc = new Vector3();
 
   let progress = 0;
   let smooth = 0;
@@ -465,8 +408,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
   let clipBottom: number | null = null;
   let boxAspect = 0;
   let camDist = 0;
-  let page = { scroll: 0, smooth: 0, footerTop: null as number | null };
-  let trailDirty = true;
 
   function layoutPieces(t: number) {
     pieces.forEach((b, i) => {
@@ -510,48 +451,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     dustMat.size = 1.3 + rise * 2.6;
   }
 
-  // Screen-space (CSS px) layout for the debris, converted to world units at z = 0.
-  function layoutTrail(heroT: number) {
-    const W = canvas.clientWidth;
-    const H = canvas.clientHeight;
-    const wpp = (2 * TRAIL_D * Math.tan(MathUtils.degToRad(FOV / 2))) / H; // world units per px
-    const appear = smoothstep(0.35, 0.85, heroT); // chunks join once the building is coming down
-    // The side gutters outside the content column, with a floor so they're never zero-width.
-    const gutter = Math.max(56, (W - 1312) / 2);
-    const land = page.footerTop === null ? 0 : smoothstep(H * 1.05, H * 0.45, page.footerTop);
-    const s = page.smooth / H; // viewports scrolled
-
-    chunks.forEach((c, i) => {
-      // Falling: each chunk loops down its gutter a little faster than the page scrolls.
-      const loop = (((s * c.speed + c.phase) % 1) + 1) % 1;
-      let x = c.side < 0 ? gutter * (0.15 + c.x * 0.7) : W - gutter * (0.15 + c.x * 0.7);
-      x += Math.sin(s * 2.2 + c.phase * 9) * 14;
-      let y = -0.2 * H + loop * 1.4 * H;
-      e.set(c.spin.x * s, c.spin.y * s, c.spin.z * s);
-      q.setFromEuler(e);
-
-      // Landing: as the footer comes up, ease each chunk into its slot on top of it.
-      if (land > 0 && page.footerTop !== null) {
-        const bh = c.size * (BH / BW);
-        const px = W * c.pile.x;
-        const py = page.footerTop - bh * 0.55 - c.pile.y * bh * 0.82;
-        const k = smoothstep((i / TRAIL) * 0.35, 0.65 + (i / TRAIL) * 0.35, land);
-        x += (px - x) * k;
-        y += (py - y) * k;
-        // Settle the tumble into a resting pose along the shortest rotation.
-        qRest.setFromEuler(e.set(0, c.pile.ry, c.pile.rz));
-        q.slerp(qRest, k);
-      }
-
-      const size = (c.size / BW) * wpp * appear;
-      p.set((x - W / 2) * wpp, -(y - H / 2) * wpp, 0);
-      sc.set(size, size, size);
-      m.compose(p, q, sc);
-      trailMesh.setMatrixAt(i, m);
-    });
-    trailMesh.instanceMatrix.needsUpdate = true;
-  }
-
   function frameCamera(aspect: number) {
     camera.aspect = aspect;
     camDist = fitDistance(aspect);
@@ -562,10 +461,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     const dpr = Math.min(window.devicePixelRatio || 1, opts.lowPower ? 1 : 1.5);
     renderer.setPixelRatio(opts.poster ? 2 : dpr);
     renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-    trailCam.aspect = canvas.clientWidth / Math.max(canvas.clientHeight, 1);
-    trailCam.updateProjectionMatrix();
     boxAspect = 0; // re-frame the building on the next render
-    trailDirty = true;
   }
 
   function render() {
@@ -602,11 +498,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
       renderer.setScissorTest(false);
     }
 
-    // Pass 2: falling debris across the whole viewport.
-    if (!opts.poster) {
-      renderer.setViewport(0, 0, W, H);
-      renderer.render(trailScene, trailCam);
-    }
   }
 
   function tick(now: number) {
@@ -615,22 +506,13 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     time += dt;
     smooth += (progress - smooth) * Math.min(1, dt * 7);
     if (Math.abs(progress - smooth) < 0.0005) smooth = progress;
-    const prevScroll = page.smooth;
-    page.smooth += (page.scroll - page.smooth) * Math.min(1, dt * 9);
-    if (Math.abs(page.scroll - page.smooth) < 0.3) page.smooth = page.scroll;
     const heroOnScreen = !box || (box.top + box.height > 0 && box.top < canvas.clientHeight && (clipBottom ?? Infinity) > Math.max(0, box.top));
 
-    // Only draw when something moved: the hero animates (dust) while visible,
-    // the debris only while the page is scrolling or settling.
-    const moving = heroOnScreen || trailDirty || page.smooth !== prevScroll;
-    if (moving) {
-      if (heroOnScreen) {
-        layoutPieces(smooth);
-        layoutDust(smooth);
-      }
-      layoutTrail(smooth);
+    // Only draw while the stage is on screen (the dust drifts, so it animates even when still).
+    if (heroOnScreen) {
+      layoutPieces(smooth);
+      layoutDust(smooth);
       render();
-      trailDirty = false;
     }
     if (running) raf = requestAnimationFrame(tick);
   }
@@ -649,11 +531,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     setProgress(v) {
       progress = MathUtils.clamp(v, 0, 1);
     },
-    setPage(scrollY, footerTop) {
-      page.scroll = scrollY;
-      if (footerTop !== page.footerTop) trailDirty = true;
-      page.footerTop = footerTop;
-    },
     setPointer(x, y) {
       pointer.x = x;
       pointer.y = y;
@@ -669,7 +546,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     renderOnce() {
       layoutPieces(smooth);
       layoutDust(smooth);
-      layoutTrail(smooth);
       render();
     },
     resize,
@@ -677,7 +553,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
       cancelAnimationFrame(raf);
       running = false;
       unit.dispose();
-      trailGeo.dispose();
       tex.dispose();
       mat.dispose();
       (foundation.material as MeshStandardMaterial).dispose();
@@ -685,7 +560,6 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
       dustMat.map?.dispose();
       dustMat.dispose();
       mesh.dispose();
-      trailMesh.dispose();
       renderer.dispose();
     },
   };

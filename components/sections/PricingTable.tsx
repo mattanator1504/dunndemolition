@@ -6,36 +6,36 @@ export function PricingTable() {
   const updated = new Date(pricesUpdated + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
   return (
     <div>
-      <div className="slab overflow-x-auto">
+      <div className="overflow-x-auto border-t border-ink">
         <table className="w-full min-w-[36rem] border-collapse text-left">
           <caption className="sr-only">Recycled stone and rip rap prices per ton, with freight</caption>
           <thead>
-            <tr className="bg-ink text-paper">
-              <th scope="col" className="p-4 font-display text-sm font-bold uppercase tracking-wide">
+            <tr className="text-muted">
+              <th scope="col" className="p-4 label font-medium">
                 Material
               </th>
-              <th scope="col" className="p-4 font-display text-sm font-bold uppercase tracking-wide">
+              <th scope="col" className="p-4 label font-medium">
                 Price
               </th>
-              <th scope="col" className="p-4 font-display text-sm font-bold uppercase tracking-wide">
+              <th scope="col" className="p-4 label font-medium">
                 Freight
               </th>
             </tr>
           </thead>
           <tbody>
             {materials.map((m) => (
-              <tr key={m.id} id={m.id} className="border-t-2 border-ink align-top">
+              <tr key={m.id} id={m.id} className="border-t border-line align-top transition-colors hover:bg-concrete">
                 <th scope="row" className="p-4 font-normal">
-                  <span className="block font-display text-lg font-bold uppercase leading-tight">{m.name}</span>
+                  <span className="h-card block">{m.name}</span>
                   <span className="mt-1 block text-sm text-muted">{m.description}</span>
-                  {m.recycled && <span className="mt-2 inline-block bg-accent px-2 py-0.5 text-xs font-bold uppercase tracking-wide">Recycled</span>}
+                  {m.recycled && <span className="label mt-3 inline-block bg-accent px-2 py-0.5 text-ink">Recycled</span>}
                 </th>
                 <td className="p-4">
                   <ul className="space-y-1">
                     {m.lines.map((l) => (
                       <li key={l.label} className="num flex justify-between gap-6">
                         <span className="text-muted">{l.label}</span>
-                        <span className="font-display text-lg font-bold">{money(l.price)}/ton</span>
+                        <span className="font-mono text-lg font-medium">{money(l.price)}/ton</span>
                       </li>
                     ))}
                   </ul>

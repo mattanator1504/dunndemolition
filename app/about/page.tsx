@@ -5,6 +5,8 @@ import { PageHero } from '@/components/sections/PageHero';
 import { SectionHead } from '@/components/sections/SectionHead';
 import { PhotoSlab } from '@/components/sections/PhotoSlab';
 import { QuoteCta } from '@/components/sections/QuoteCta';
+import { PhotoReel } from '@/components/sections/PhotoReel';
+import { Photo } from '@/components/site/Photo';
 
 // Primary keyword: "demolition company Virginia Beach" (provisional, see references/used-keywords.md)
 export const metadata = buildMetadata({
@@ -35,15 +37,30 @@ export default function AboutPage() {
         image="excavator-old-industrial-building"
       />
 
-      <section aria-label="Dunn Demolition by the numbers" className="border-b-2 border-ink bg-concrete">
-        <dl className="container-x grid grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Dunn Demolition by the numbers" className="bg-concrete pb-6 pt-10">
+        <dl className="container-x grid grid-cols-2 border-t border-ink lg:grid-cols-4">
           {facts.map((f, i) => (
-            <div key={f.label} data-reveal style={{ '--i': i } as React.CSSProperties} className={`flex flex-col-reverse justify-end gap-2 py-8 pr-4 ${i ? 'lg:border-l-2 lg:border-ink lg:pl-6' : ''} ${i % 2 ? 'border-l-2 border-ink pl-4' : ''}`}>
-              <dt className="text-sm font-semibold sm:text-base">{f.label}</dt>
-              <dd className="num font-display text-[clamp(2.5rem,5vw,3.75rem)] font-bold leading-none">{f.value}</dd>
+            <div key={f.label} data-reveal style={{ '--i': i } as React.CSSProperties} className={`flex flex-col-reverse justify-end gap-3 py-6 pr-4 ${i ? 'lg:border-l lg:border-line lg:pl-4' : ''} ${i % 2 ? 'border-l border-line pl-4' : ''}`}>
+              <dt className="label text-muted">{f.label}</dt>
+              <dd className="num font-display text-[clamp(2.6rem,5vw,4.75rem)] font-black leading-[0.8] tracking-[-0.04em] [font-stretch:125%]">{f.value}</dd>
             </div>
           ))}
         </dl>
+      </section>
+
+      <section aria-label="Demolition and site work photos" className="bg-concrete pb-10">
+        <div className="container-x grid grid-cols-2 gap-3 lg:grid-cols-12 lg:grid-rows-2 lg:gap-4">
+          {[
+            { n: 'excavator-dismantling-industrial-building', c: 'col-span-2 aspect-[16/10] lg:col-span-7 lg:row-span-2 lg:aspect-auto' },
+            { n: 'aerial-heavy-equipment', c: 'aspect-square lg:col-span-5 lg:aspect-[16/9]' },
+            { n: 'loader-at-night', c: 'aspect-square lg:col-span-3 lg:aspect-[4/3]' },
+            { n: 'broken-concrete-rubble', c: 'col-span-2 aspect-[16/9] lg:col-span-2 lg:aspect-auto' },
+          ].map((p) => (
+            <div key={p.n} className={`group relative overflow-hidden ${p.c}`} data-reveal="blocks">
+              <Photo name={p.n} sizes="(min-width: 1024px) 50vw, 100vw" className="photo absolute inset-0 h-full w-full scale-[1.14] object-cover transition-[filter] duration-500 group-hover:[filter:none]" parallax />
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="bg-paper py-20 lg:py-28" aria-labelledby="experience-title">
@@ -80,7 +97,7 @@ export default function AboutPage() {
           </div>
           <ul className="grid gap-4 self-end sm:grid-cols-2">
             {[site.license, ...site.insurance, `Member, ${site.memberships[0]}`].map((item, i) => (
-              <li key={item} className="slab flex items-center gap-4 p-5 font-display font-bold uppercase leading-tight" data-reveal style={{ '--i': i } as React.CSSProperties}>
+              <li key={item} className="slab flex items-center gap-4 p-5 font-bold uppercase leading-tight [font-stretch:110%]" data-reveal style={{ '--i': i } as React.CSSProperties}>
                 <span className="h-4 w-4 shrink-0 bg-accent" aria-hidden="true" />
                 {item}
               </li>
@@ -111,6 +128,7 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <PhotoReel />
       <QuoteCta title="Work with us on your next project" />
     </>
   );

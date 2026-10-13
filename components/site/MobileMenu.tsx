@@ -27,17 +27,18 @@ export function MobileMenu() {
     <details ref={ref} className="group lg:hidden">
       <summary
         aria-label="Menu"
-        className="flex h-12 w-12 items-center justify-center border-2 border-paper text-paper group-open:border-accent group-open:bg-accent group-open:text-ink"
+        className="flex h-12 w-12 items-center justify-center border border-paper/40 text-paper group-open:border-accent group-open:bg-accent group-open:text-ink"
       >
-        <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden="true" stroke="currentColor" strokeWidth="2.5" fill="none">
-          <path d="M3 7h18M3 12h18M3 17h18" className="group-open:hidden" />
+        <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" stroke="currentColor" strokeWidth="2" fill="none">
+          <path d="M3 9h18M3 15h18" className="group-open:hidden" />
           <path d="M5 5l14 14M19 5L5 19" className="hidden group-open:block" />
         </svg>
       </summary>
-      <div className="on-ink fixed inset-x-0 top-[4.5rem] bottom-0 z-40 overflow-y-auto bg-ink px-4 pb-10 pt-6">
+      <div className="on-ink fixed inset-x-0 top-[4.5rem] bottom-0 z-40 overflow-y-auto bg-ink px-4 pb-10 pt-8">
+        <p className="label mb-4 text-dust">Menu</p>
         <NavLinks variant="mobile" />
         <div className="mt-8 grid gap-4">
-          <a href="/contact" className="btn btn-primary w-full">
+          <a href="/contact" className="btn btn-primary w-full justify-between">
             Get a free quote
           </a>
           <a href={site.phone.href} className="btn btn-secondary num w-full text-paper">

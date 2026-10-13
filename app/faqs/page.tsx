@@ -4,6 +4,8 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { PageHero } from '@/components/sections/PageHero';
 import { FaqList } from '@/components/sections/FaqList';
 import { QuoteCta } from '@/components/sections/QuoteCta';
+import { Photo } from '@/components/site/Photo';
+import { Split } from '@/components/fx/Split';
 
 // Primary keyword: "demolition FAQ" (provisional, see references/used-keywords.md)
 export const metadata = buildMetadata({
@@ -13,10 +15,10 @@ export const metadata = buildMetadata({
   path: '/faqs',
 });
 
-const groups: { name: Faq['group']; title: string }[] = [
-  { name: 'Jobs', title: 'What we take on' },
-  { name: 'How we work', title: 'How a job runs' },
-  { name: 'The company', title: 'Who you’re hiring' },
+const groups: { name: Faq['group']; title: string; image: string }[] = [
+  { name: 'Jobs', title: 'What we take on', image: 'house-demolition-excavator' },
+  { name: 'How we work', title: 'How a job runs', image: 'excavator-loading-dump-truck' },
+  { name: 'The company', title: 'Who you’re hiring', image: 'yellow-hard-hat' },
 ];
 
 export default function FaqsPage() {
@@ -28,14 +30,21 @@ export default function FaqsPage() {
         lede={<p>Straight answers to the demolition questions we hear most: permits, timing, insurance and where everything ends up.</p>}
         image="excavator-dismantling-industrial-building"
       />
-      <section className="bg-paper py-16 lg:py-24">
-        <div className="container-x grid gap-16">
+      <section className="bg-paper py-20 lg:py-28">
+        <div className="container-x grid gap-24 lg:gap-32">
           {groups.map((g) => (
-            <div key={g.name} className="grid gap-8 lg:grid-cols-[0.6fr_1.4fr] lg:gap-16">
-              <h2 className="h-section text-[clamp(1.75rem,3.5vw,2.75rem)]" data-reveal>
-                {g.title}
-              </h2>
-              <FaqList items={faqs.filter((f) => f.group === g.name)} />
+            <div key={g.name} className="grid gap-10 lg:grid-cols-12 lg:gap-10">
+              <div className="lg:sticky lg:top-28 lg:col-span-4 lg:self-start">
+                <h2 className="h-section text-[clamp(2rem,3.6vw,3.25rem)]" data-reveal aria-label={g.title}>
+                  <Split text={g.title} />
+                </h2>
+                <div className="relative mt-8 hidden aspect-[4/5] overflow-hidden lg:block" data-reveal="blocks">
+                  <Photo name={g.image} sizes="30vw" className="photo absolute inset-0 h-full w-full scale-[1.14] object-cover" parallax />
+                </div>
+              </div>
+              <div className="lg:col-span-7 lg:col-start-6">
+                <FaqList items={faqs.filter((f) => f.group === g.name)} />
+              </div>
             </div>
           ))}
         </div>

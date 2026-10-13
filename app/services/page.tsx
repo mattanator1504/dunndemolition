@@ -7,7 +7,8 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { PageHero } from '@/components/sections/PageHero';
 import { SectionHead } from '@/components/sections/SectionHead';
 import { Photo } from '@/components/site/Photo';
-import { ServiceIcon } from '@/components/sections/ServiceIcon';
+import { StickySwap } from '@/components/sections/StickySwap';
+import { ServiceIndex } from '@/components/sections/ServiceIndex';
 import { Locations } from '@/components/sections/Locations';
 import { QuoteCta } from '@/components/sections/QuoteCta';
 
@@ -40,38 +41,18 @@ export default function ServicesPage() {
       <section className="bg-paper py-20 lg:py-28" aria-labelledby="demo-title">
         <div className="container-x">
           <SectionHead id="demo-title" title="Demolition" intro="Residential, commercial and industrial structures of every size." />
-          <ul className="mt-14 grid gap-10 md:grid-cols-2 lg:gap-12">
-            {demolition.map((s, i) => (
-              <li key={s.id} id={s.id} className="scroll-mt-24" data-reveal style={{ '--i': i % 2 } as React.CSSProperties}>
-                <article className="slab h-full">
-                  <div className="relative aspect-[16/9] overflow-hidden border-b-2 border-ink">
-                    <Photo name={s.image} sizes="(min-width: 768px) 45vw, 100vw" className="photo absolute inset-0 h-full w-full scale-[1.14] object-cover" parallax />
-                  </div>
-                  <div className="p-6 lg:p-8">
-                    <h3 className="h-card text-[1.6rem]">{s.name}</h3>
-                    <p className="mt-3 text-muted">{s.body}</p>
-                  </div>
-                </article>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-14">
+            <StickySwap items={demolition.map(({ id, name, body, image }) => ({ id, name, body, image }))} />
+          </div>
         </div>
       </section>
 
       <section className="on-ink bg-ink py-20 text-paper lg:py-28" aria-labelledby="site-title">
         <div className="container-x">
           <SectionHead id="site-title" title="Site work and removals" intro="So you only need one contractor." />
-          <ul className="mt-14 grid gap-6 md:grid-cols-2">
-            {siteWork.map((s, i) => (
-              <li key={s.id} id={s.id} className="slab scroll-mt-24 p-6 lg:p-8" data-reveal style={{ '--i': i % 2 } as React.CSSProperties}>
-                <span className="flex h-12 w-12 items-center justify-center bg-accent text-ink">
-                  <ServiceIcon id={s.id} />
-                </span>
-                <h3 className="h-card mt-5">{s.name}</h3>
-                <p className="mt-3 text-dust">{s.body}</p>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-14">
+            <ServiceIndex link={false} items={siteWork.map(({ id, name, body, image }) => ({ id, name, short: body, image }))} />
+          </div>
         </div>
       </section>
 
@@ -89,7 +70,7 @@ export default function ServicesPage() {
             <ul className="mt-8 flex flex-wrap gap-3" data-reveal>
               {materials.map((m) => (
                 <li key={m.id}>
-                  <Link href={`/buy#${m.id}`} className="inline-block border-2 border-ink bg-paper px-4 py-2 font-display text-sm font-bold uppercase hover:bg-accent">
+                  <Link href={`/buy#${m.id}`} className="label inline-block border border-ink px-3 py-2 transition-colors hover:bg-ink hover:text-paper">
                     {m.name}
                   </Link>
                 </li>
@@ -99,7 +80,7 @@ export default function ServicesPage() {
               Buy recycled stone
             </Link>
           </div>
-          <div className="relative aspect-[4/3] overflow-hidden border-2 border-ink shadow-[10px_10px_0_0_var(--color-ink)]" data-reveal>
+          <div className="relative aspect-[4/3] overflow-hidden" data-reveal="blocks">
             <Photo name="concrete-rubble-stockpile" sizes="(min-width: 1024px) 45vw, 100vw" className="photo absolute inset-0 h-full w-full scale-[1.14] object-cover" parallax />
           </div>
         </div>
@@ -110,12 +91,15 @@ export default function ServicesPage() {
           <SectionHead id="equipment-title" title="Heavy-duty equipment" intro="JCB and Caterpillar excavators, chosen for efficiency and reliability." />
           <ul className="mt-12 grid gap-6 md:grid-cols-3">
             {[
-              { t: 'Hydraulic thumbs', b: 'Precise control, faster sorting, safer demolition.' },
-              { t: 'Constant cleanup', b: 'Dump trailers and trucks haul debris as we go.' },
-              { t: 'Containers', b: 'Drop-off and pick-up for your own disposal needs.' },
+              { t: 'Hydraulic thumbs', b: 'Precise control, faster sorting, safer demolition.', img: 'excavator-bucket-on-rubble' },
+              { t: 'Constant cleanup', b: 'Dump trailers and trucks haul debris as we go.', img: 'excavator-loading-dump-truck' },
+              { t: 'Containers', b: 'Drop-off and pick-up for your own disposal needs.', img: 'aerial-dump-trucks' },
             ].map((e, i) => (
-              <li key={e.t} className="slab p-6" data-reveal style={{ '--i': i } as React.CSSProperties}>
-                <h3 className="h-card">{e.t}</h3>
+              <li key={e.t} className="group" data-reveal style={{ '--i': i } as React.CSSProperties}>
+                <div className="relative aspect-[4/3] overflow-hidden" data-reveal="blocks">
+                  <Photo name={e.img} sizes="(min-width: 768px) 30vw, 100vw" className="photo absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out-heavy)] group-hover:scale-105" />
+                </div>
+                <h3 className="h-card mt-6">{e.t}</h3>
                 <p className="mt-3 text-muted">{e.b}</p>
               </li>
             ))}

@@ -1,18 +1,21 @@
-// Wordmark built in type plus a simple yellow mark. Swap for Dunn's real logo
-// file when it's supplied (README → Fill these).
+// Wordmark in type plus a hi-vis mark: a running-bond wall with its top brick knocked loose.
+// Swap for Dunn's real logo file when it's supplied (README → Fill these).
 export function Logo({ className = '' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true" className="shrink-0">
-        <rect x="1" y="1" width="32" height="32" fill="#E7B008" stroke="currentColor" strokeWidth="2" />
-        <rect x="7" y="20" width="8" height="7" fill="#0A0A0A" />
-        <rect x="17" y="20" width="10" height="7" fill="#0A0A0A" />
-        <rect x="7" y="11" width="11" height="7" fill="#0A0A0A" />
-        <rect x="21" y="8" width="7" height="7" fill="#0A0A0A" transform="rotate(18 24.5 11.5)" />
+    <span className={`inline-flex items-center gap-3 ${className}`}>
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" className="shrink-0">
+        <rect width="32" height="32" fill="#FFB800" />
+        <g fill="#121211">
+          <rect x="4" y="22" width="11" height="6" />
+          <rect x="17" y="22" width="11" height="6" />
+          <rect x="4" y="14" width="5" height="6" />
+          <rect x="11" y="14" width="11" height="6" />
+          <rect x="21" y="5" width="9" height="6" transform="rotate(24 25.5 8)" />
+        </g>
       </svg>
-      <span className="font-display text-[1.35rem] font-bold uppercase leading-none tracking-[-0.02em]">
-        Dunn <span className="sr-only">Demolition</span>
-        <span aria-hidden="true">Demo</span>
+      <span className="flex flex-col leading-none">
+        <span className="font-display text-[1.3rem] font-black uppercase tracking-[-0.03em] [font-stretch:125%]">Dunn</span>
+        <span className="mt-1 font-mono text-[0.58rem] font-medium uppercase tracking-[0.28em] opacity-70">Demolition</span>
       </span>
     </span>
   );

@@ -39,8 +39,8 @@ export function EmailQuoteForm() {
     setSent(true);
   }
 
-  const field = 'mt-2 block w-full border-2 border-ink bg-paper px-4 py-3 text-base text-ink placeholder:text-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent';
-  const label = 'font-display text-sm font-bold uppercase tracking-wide';
+  const field = 'mt-2 block w-full border border-ink/40 bg-paper focus:border-ink px-4 py-3 text-base text-ink placeholder:text-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-accent';
+  const label = 'label';
 
   return (
     <form onSubmit={onSubmit} className="slab grid gap-5 p-6 sm:grid-cols-2 sm:p-8" aria-describedby="quote-form-note">

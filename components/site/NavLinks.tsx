@@ -15,8 +15,9 @@ export function NavLinks({ variant }: { variant: 'desktop' | 'mobile' }) {
             <Link
               href={item.href}
               aria-current={isCurrent(item.href) ? 'page' : undefined}
-              className="relative block px-3 py-2 font-display text-[0.95rem] font-bold uppercase tracking-tight text-paper after:absolute after:inset-x-3 after:bottom-0.5 after:h-[3px] after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-200 hover:after:scale-x-100 aria-[current=page]:after:scale-x-100"
+              className="label group flex items-center gap-2 px-3 py-2 text-paper/75 transition-colors hover:text-paper aria-[current=page]:text-paper"
             >
+              <span aria-hidden="true" className="h-1.5 w-1.5 scale-0 bg-accent transition-transform duration-300 group-hover:scale-100 group-aria-[current=page]:scale-100" />
               {item.label}
             </Link>
           </li>
@@ -25,18 +26,18 @@ export function NavLinks({ variant }: { variant: 'desktop' | 'mobile' }) {
     );
   }
   return (
-    <ul className="divide-y divide-line-dark border-y border-line-dark">
-      {nav.map((item) => (
-        <li key={item.href}>
+    <ul className="border-t border-line-dark">
+      {nav.map((item, i) => (
+        <li key={item.href} className="border-b border-line-dark">
           <Link
             href={item.href}
             aria-current={isCurrent(item.href) ? 'page' : undefined}
-            className="flex min-h-14 items-center justify-between font-display text-2xl font-bold uppercase text-paper aria-[current=page]:text-accent"
+            className="group flex min-h-16 items-baseline gap-4 py-3 text-paper aria-[current=page]:text-accent"
           >
-            {item.label}
-            <span aria-hidden="true" className="text-accent">
-              ›
+            <span aria-hidden="true" className="label w-6 text-dust">
+              {String(i + 1).padStart(2, '0')}
             </span>
+            <span className="font-display text-[2.1rem] font-extrabold uppercase leading-none tracking-[-0.02em] [font-stretch:118%]">{item.label}</span>
           </Link>
         </li>
       ))}
