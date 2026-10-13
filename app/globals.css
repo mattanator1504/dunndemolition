@@ -28,6 +28,13 @@
   --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 
+  /* Small caps labels need air: Tailwind's default 0.025em reads cramped at text-sm. */
+  --tracking-wide: 0.07em;
+
+  /* Fine static grain for ink surfaces, so large black areas read as material, not a void.
+     One tiny SVG tile, painted once; no overlay, no blend mode, no cost on scroll. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
   --radius: 0;
   --shadow-hard: 6px 6px 0 0 var(--color-ink);
   --shadow-hard-sm: 4px 4px 0 0 var(--color-ink);
@@ -71,6 +78,9 @@
   }
   .on-ink {
     --focus: var(--color-accent);
+  }
+  .on-ink.bg-ink {
+    background-image: var(--grain);
   }
   ::selection {
     background: var(--color-accent);
@@ -195,6 +205,13 @@
   .btn-primary:active {
     transform: translate(4px, 4px);
     box-shadow: 2px 2px 0 0 var(--color-ink);
+    transition-duration: 120ms;
+  }
+  .on-ink .btn-primary:active {
+    box-shadow: 2px 2px 0 0 var(--color-paper);
+  }
+  .btn-secondary:active {
+    transform: translateY(2px);
     transition-duration: 120ms;
   }
 
