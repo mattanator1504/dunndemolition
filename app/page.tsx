@@ -27,46 +27,50 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <Stats />
+      {/* Everything after the hero rides one layer above it. Under js-pin it pulls up one
+          stage height, so the stats band, then the rest of the page, slide over the rubble. */}
+      <div className="relative z-10 [.js-pin_&]:-mt-[calc(100svh-4.5rem)]">
+        <Stats />
 
-      <section className="on-ink bg-ink py-20 text-paper lg:py-28" aria-labelledby="services-title">
-        <div className="container-x">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <SectionHead
-              id="services-title"
-              title="What we take down"
-              intro="Demolition, plus the site work around it."
-              className="text-paper"
-            />
-            <Link href="/services" className="link-under shrink-0 font-display font-bold uppercase tracking-wide text-accent" data-reveal>
-              All demolition services
-            </Link>
+        <section className="on-ink bg-ink py-20 text-paper lg:py-28" aria-labelledby="services-title">
+          <div className="container-x">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <SectionHead
+                id="services-title"
+                title="What we take down"
+                intro="Demolition, plus the site work around it."
+                className="text-paper"
+              />
+              <Link href="/services" className="link-under shrink-0 font-display font-bold uppercase tracking-wide text-accent" data-reveal>
+                All demolition services
+              </Link>
+            </div>
+            <div className="mt-14">
+              <ServiceCards ids={homeServiceIds} />
+            </div>
           </div>
-          <div className="mt-14">
-            <ServiceCards ids={homeServiceIds} />
+        </section>
+
+        <WhyDunn />
+        <PhotoReel />
+        <StoneBanner />
+        <Process />
+
+        <section className="bg-paper py-20 lg:py-28" aria-labelledby="faq-title">
+          <div className="container-x grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
+            <div>
+              <SectionHead id="faq-title" title="Straight answers" intro="The questions we hear most on the phone." />
+              <Link href="/faqs" className="link-under mt-8 inline-block font-display font-bold uppercase tracking-wide" data-reveal>
+                All 19 demolition FAQs
+              </Link>
+            </div>
+            <FaqList items={homeFaqs} />
           </div>
-        </div>
-      </section>
+        </section>
+        <JsonLd data={faqSchema(homeFaqs)} />
 
-      <WhyDunn />
-      <PhotoReel />
-      <StoneBanner />
-      <Process />
-
-      <section className="bg-paper py-20 lg:py-28" aria-labelledby="faq-title">
-        <div className="container-x grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-          <div>
-            <SectionHead id="faq-title" title="Straight answers" intro="The questions we hear most on the phone." />
-            <Link href="/faqs" className="link-under mt-8 inline-block font-display font-bold uppercase tracking-wide" data-reveal>
-              All 19 demolition FAQs
-            </Link>
-          </div>
-          <FaqList items={homeFaqs} />
-        </div>
-      </section>
-      <JsonLd data={faqSchema(homeFaqs)} />
-
-      <QuoteCta pileRoom />
+        <QuoteCta pileRoom />
+      </div>
     </>
   );
 }

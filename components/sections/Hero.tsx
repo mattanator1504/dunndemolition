@@ -5,59 +5,63 @@ import { site } from '@/lib/site';
 import poster from '@/lib/poster.generated.json';
 
 // Home hero. The H1 and the poster render first (LCP is the headline, not the 3D).
-// On capable desktops the live wall fades in over the poster and breaks apart on scroll.
+// On capable desktops (html.js-pin, set before first paint) the hero is a tall track with a
+// sticky stage: the live building comes down as you scroll it, then the stats band slides
+// up over the rubble (Stats pulls itself up by one stage height under js-pin).
 export function Hero() {
   return (
-    <section id="hero" className="on-ink group/hero relative isolate overflow-hidden bg-ink text-paper">
-      {/* Scene box (desktop): the right half of the hero. Poster first, live wall over it. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[50%] lg:block xl:w-[52%]">
-        <div className="absolute inset-0 bg-[radial-gradient(60%_55%_at_55%_45%,rgba(231,176,8,0.16),transparent_70%)]" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/hero-wall-poster.webp"
-          alt=""
-          width={poster.width}
-          height={poster.height}
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-contain transition-opacity duration-300 group-data-[scene=live]/hero:opacity-0"
-        />
-        <HeroSceneMount heroId="hero" />
-      </div>
-
-      <div className="container-x flex min-h-[calc(100svh-4.5rem)] flex-col justify-center py-16 lg:py-24">
-        <div className="max-w-[44rem] lg:max-w-[48%]">
-          <p className="inline-flex items-center gap-3 border-2 border-accent px-3 py-1.5 font-display text-sm font-bold uppercase tracking-wide text-accent">
-            Since {site.foundingYear} · {site.license}
-          </p>
-          <h1 className="mt-7">
-            <span className="display block text-[clamp(3.6rem,10vw,8.75rem)] lg:text-[clamp(4rem,8.2vw,8.75rem)] text-paper">
-              We break it <span className="text-accent">down.</span>
-            </span>
-            <span className="mt-6 block max-w-xl font-display text-[clamp(1.25rem,2.2vw,1.65rem)] font-bold uppercase leading-tight tracking-[-0.01em] text-paper">
-              Demolition contractor for Hampton Roads, Virginia, North Carolina and Maryland
-            </span>
-          </h1>
-          <p className="lede mt-5 text-dust">
-            Houses, commercial buildings and industrial plants, taken down with excavators, not explosives. Up to 75% of the material gets recycled.
-          </p>
-          <div className="mt-9 flex flex-wrap gap-4">
-            <QuoteButton />
-            <CallButton className="text-paper" />
-          </div>
+    <section id="hero" className="on-ink group/hero relative isolate bg-ink text-paper [.js-pin_&]:h-[360svh]">
+      <div className="relative isolate flex min-h-[calc(100svh-4.5rem)] flex-col overflow-hidden [.js-pin_&]:sticky [.js-pin_&]:top-[4.5rem] [.js-pin_&]:h-[calc(100svh-4.5rem)]">
+        {/* Scene box (desktop): the right half of the stage. Poster first, live building over it. */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[50%] lg:block xl:w-[52%]">
+          <div className="absolute inset-0 bg-[radial-gradient(60%_55%_at_55%_45%,rgba(231,176,8,0.16),transparent_70%)]" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/hero-wall-poster.webp"
+            alt=""
+            width={poster.width}
+            height={poster.height}
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-contain transition-opacity duration-300 group-data-[scene=live]/hero:opacity-0"
+          />
+          <HeroSceneMount heroId="hero" />
         </div>
-        {/* Small screens: the wall as a still image under the buttons (no WebGL on phones). */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/hero-wall-poster.webp"
-          alt=""
-          width={poster.width}
-          height={poster.height}
-          loading="lazy"
-          decoding="async"
-          className="mt-12 h-auto w-full max-w-xl lg:hidden"
-        />
+
+        <div className="container-x flex flex-1 flex-col justify-center py-16 lg:py-24">
+          <div className="max-w-[44rem] lg:max-w-[48%]">
+            <p className="inline-flex items-center gap-3 border-2 border-accent px-3 py-1.5 font-display text-sm font-bold uppercase tracking-wide text-accent">
+              Since {site.foundingYear} · {site.license}
+            </p>
+            <h1 className="mt-7">
+              <span className="display block text-[clamp(3.6rem,10vw,8.75rem)] lg:text-[clamp(4rem,8.2vw,8.75rem)] text-paper">
+                We break it <span className="text-accent">down.</span>
+              </span>
+              <span className="mt-6 block max-w-xl font-display text-[clamp(1.25rem,2.2vw,1.65rem)] font-bold uppercase leading-tight tracking-[-0.01em] text-paper">
+                Demolition contractor for Hampton Roads, Virginia, North Carolina and Maryland
+              </span>
+            </h1>
+            <p className="lede mt-5 text-dust">
+              Houses, commercial buildings and industrial plants, taken down with excavators, not explosives. Up to 75% of the material gets recycled.
+            </p>
+            <div className="mt-9 flex flex-wrap gap-4">
+              <QuoteButton />
+              <CallButton className="text-paper" />
+            </div>
+          </div>
+          {/* Small screens: the building as a still image under the buttons (no WebGL on phones). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/hero-wall-poster.webp"
+            alt=""
+            width={poster.width}
+            height={poster.height}
+            loading="lazy"
+            decoding="async"
+            className="mt-12 h-auto w-full max-w-xl lg:hidden"
+          />
+        </div>
+        <div className="hazard h-3 shrink-0" aria-hidden="true" />
       </div>
-      <div className="hazard h-3" aria-hidden="true" />
     </section>
   );
 }

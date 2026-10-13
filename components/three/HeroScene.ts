@@ -1,7 +1,12 @@
-// The home page's 3D: a concrete block wall that breaks apart as you scroll, then
-// chunks of it tumble down the page edges and land in a pile on the footer.
+// The home page's 3D: a three-story concrete-frame building that comes down as you
+// scroll through the pinned hero, then chunks tumble down the page edges and land
+// in a pile on the footer.
+// The hero's scroll progress (0..1) runs three beats:
+//   0.04-0.30  the excavator takes the top front corner off
+//   0.30-0.80  the floors pancake, columns topple, the infill crumbles into a heap
+//   0.80-1.00  the dust settles and the camera drops to the rubble
 // One canvas, one WebGL context, two passes per frame:
-//   1. the wall, drawn into the hero's scene box (same framing as the poster)
+//   1. the building, drawn into the hero's scene box (same framing as the poster)
 //   2. the falling debris, drawn across the whole viewport
 // Plain three.js to stay inside the 3D budget in technical-seo.md §4.
 // Loaded only through HeroSceneMount, never in the initial bundle.
@@ -20,6 +25,7 @@ import {
   InstancedMesh,
   MathUtils,
   Matrix4,
+  Mesh,
   MeshStandardMaterial,
   PerspectiveCamera,
   PointLight,
@@ -32,31 +38,95 @@ import {
   WebGLRenderer,
 } from 'three';
 
-// Wall layout (running bond). Exported so the poster and the scene frame identically.
-const COLS = 7;
-const ROWS = 9;
-const BW = 1.2; // block width
-const BH = 0.58; // block height
-const BD = 0.62; // block depth
-const GAP = 0.06;
-export const WALL_W = COLS * (BW + GAP) + BW / 2;
-export const WALL_H = ROWS * (BH + GAP);
-export const FRAME_MARGIN = 1.22; // the poster is rendered with the same margin
-export const FRAME_ASPECT = (WALL_W * FRAME_MARGIN) / (WALL_H * FRAME_MARGIN);
+// Building: a 3 x 2 bay concrete frame, three floors, block infill on the two faces
+// toward the camera (front +z, right +x). Ground (top of the foundation) is y = 0.
+const BAY = 3.4;
+const NX = 3;
+const NZ = 2;
+const FLOORS = 3;
+const FH = 3; // floor-to-floor
+const SLAB = 0.32;
+const COL = 0.44;
+const FOUND = 0.4;
+const FOUND_PAD = 1.2; // foundation reaches this far past the frame on every side
+const W = NX * BAY;
+const D = NZ * BAY;
+const TOP = FLOORS * FH;
+const BLOCK_D = 0.3;
+const BLOCK_ROWS = 6;
+const BLOCK_COLS = 3;
 
+const YAW = 0.55; // camera from the front-right, so the knocked corner faces the viewer
+const PITCH = 0.12;
 const FOV = 32;
+const FRAME_MARGIN = 1.12; // the poster is rendered with the same margin
+const LOOK_Y = (TOP - FOUND) / 2;
+
+// Framing: project the site's eight corners through the resting camera and find the
+// distance that fits them inside the margin. Perspective (the near corner, the downward
+// view) makes a flat width/height estimate crop the poster, so it's measured instead.
+const SITE_CORNERS: Vector3[] = [];
+for (const x of [-1, 1]) for (const y of [-FOUND, TOP]) for (const z of [-1, 1]) SITE_CORNERS.push(new Vector3(x * (W / 2 + FOUND_PAD), y, z * (D / 2 + FOUND_PAD)));
+
+function placeCamera(cam: PerspectiveCamera, yaw: number, pitch: number, dist: number, lookY: number) {
+  cam.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, lookY + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist);
+  cam.lookAt(0, lookY, 0);
+  cam.updateMatrixWorld();
+}
+
+const probe = new Vector3();
+function siteExtent(cam: PerspectiveCamera) {
+  let x = 0;
+  let y = 0;
+  for (const c of SITE_CORNERS) {
+    probe.copy(c).project(cam);
+    x = Math.max(x, Math.abs(probe.x));
+    y = Math.max(y, Math.abs(probe.y));
+  }
+  return { x, y };
+}
+
+function fitDistance(aspect: number) {
+  const cam = new PerspectiveCamera(FOV, aspect, 0.1, 500);
+  let lo = 5;
+  let hi = 300;
+  for (let i = 0; i < 28; i++) {
+    const mid = (lo + hi) / 2;
+    placeCamera(cam, YAW, PITCH, mid, LOOK_Y);
+    const ext = siteExtent(cam);
+    if (Math.max(ext.x, ext.y) * FRAME_MARGIN > 1) lo = mid;
+    else hi = mid;
+  }
+  return hi;
+}
+
+// The poster's aspect: the site's projected width over height (square probe, so NDC units match).
+export const FRAME_ASPECT = (() => {
+  const cam = new PerspectiveCamera(FOV, 1, 0.1, 500);
+  placeCamera(cam, YAW, PITCH, fitDistance(1), LOOK_Y);
+  const ext = siteExtent(cam);
+  return ext.x / ext.y;
+})();
+
 const ACCENT = new Color('#E7B008');
 
-type Block = {
+// Trail chunks reuse the old wall's block proportions.
+const BW = 1.2;
+const BH = 0.58;
+const BD = 0.62;
+
+type Piece = {
   base: Vector3;
-  tilt: Vector3; // resting imperfection, a degree or two
-  vel: Vector3;
-  spin: Vector3;
-  delay: number; // 0..1, when this block starts to go
-  scale: Vector3;
+  size: Vector3;
+  tilt: Vector3; // resting imperfection, a degree or so
+  t0: number; // when it lets go (hero progress)
+  dur: number;
+  end: Vector3; // where it comes to rest in the heap
+  endRot: Vector3;
+  lift: number; // upward kick when the bucket hits
 };
 
-// Small seeded RNG so the wall (and the poster) is identical on every load.
+// Small seeded RNG so the building (and the poster) is identical on every load.
 function rng(seed: number) {
   return () => {
     seed |= 0;
@@ -109,7 +179,9 @@ export type Rect = { left: number; top: number; width: number; height: number };
 export type HeroSceneHandle = {
   /** Where the hero's scene box is on screen (CSS px), or null to draw it full-canvas (poster). */
   setBox: (r: Rect | null) => void;
-  /** Hero break progress, 0..1. */
+  /** Screen y (CSS px) below which the building must not draw: the next section sliding over it. */
+  setClip: (bottom: number | null) => void;
+  /** Demolition progress, 0..1. */
   setProgress: (p: number) => void;
   /** Page scroll in px and the footer's top edge on screen, for the falling debris. */
   setPage: (scrollY: number, footerTop: number | null) => void;
@@ -143,9 +215,139 @@ function addLights(scene: Scene) {
   const key = new DirectionalLight(0xfff1dc, 3.2);
   key.position.set(-10, 7, 6);
   scene.add(key);
-  const rim = new PointLight(ACCENT, 60, 30, 1.6);
-  rim.position.set(4.5, 3, -4);
+  const fill = new DirectionalLight(0xdfe6ee, 0.7);
+  fill.position.set(9, 3, 8);
+  scene.add(fill);
+  const rim = new PointLight(ACCENT, 70, 34, 1.6);
+  rim.position.set(9, 8, -6);
   scene.add(rim);
+}
+
+// Lay out the frame and infill, and give every piece its moment and its resting place.
+function buildPieces(rand: () => number) {
+  const pieces: Piece[] = [];
+  const kinds: ('col' | 'slab' | 'block')[] = [];
+  const impact = new Vector3(W / 2, TOP, D / 2);
+  const diag = Math.hypot(W, TOP, D);
+  const heapC = new Vector3(0.6, 0, 0.5);
+  const heapR = 7.5;
+  const heap = (x: number, z: number) => 2.4 * Math.max(0, 1 - ((x - heapC.x) ** 2 + (z - heapC.z) ** 2) / heapR ** 2);
+
+  const add = (kind: 'col' | 'slab' | 'block', base: Vector3, size: Vector3, normal?: Vector3) => {
+    const h = base.y / TOP;
+    const dImp = base.distanceTo(impact) / diag;
+    const corner = dImp < 0.3 && base.y > TOP - FH - 0.2;
+    let t0: number;
+    let dur: number;
+    let lift = 0;
+    const end = new Vector3();
+    const endRot = new Vector3();
+    const out = new Vector3(base.x - heapC.x, 0, base.z - heapC.z);
+    const outDir = out.clone().normalize();
+
+    if (corner) {
+      // Beat 1: knocked off the top front corner, thrown outward and down.
+      t0 = 0.04 + (dImp / 0.3) * 0.17 + rand() * 0.03;
+      dur = 0.1 + rand() * 0.06;
+      lift = 0.5 + rand() * 0.9;
+      end.set(base.x + outDir.x * (2 + rand() * 2.5), 0, base.z + outDir.z * (2 + rand() * 2.5));
+    } else {
+      // Beat 2: top-down pancake, spreading out from the hit corner.
+      t0 = 0.3 + (1 - h) * 0.17 + dImp * 0.08 + rand() * 0.03 + (kind === 'col' ? 0.02 : 0);
+      dur = 0.11 + 0.08 * h + rand() * 0.03;
+      end.set(base.x + out.x * (0.12 + rand() * 0.3), 0, base.z + out.z * (0.12 + rand() * 0.3));
+    }
+
+    if (kind === 'slab') {
+      const level = Math.round((base.y + SLAB / 2) / FH) - 1;
+      end.x += (rand() - 0.5) * 0.8;
+      end.z += (rand() - 0.5) * 0.8;
+      end.y = SLAB / 2 + 0.1 + level * 0.42 + rand() * 0.15;
+      endRot.set((rand() - 0.5) * 0.6, (rand() - 0.5) * 0.5, (rand() - 0.5) * 0.6);
+    } else if (kind === 'col') {
+      end.x += outDir.x * (0.6 + rand() * 1.2);
+      end.z += outDir.z * (0.6 + rand() * 1.2);
+      end.y = heap(end.x, end.z) * (0.5 + rand() * 0.4) + COL / 2;
+      // Topple: lie down along a random horizontal axis.
+      endRot.set(rand() < 0.5 ? Math.PI / 2 : -Math.PI / 2, rand() * Math.PI, (rand() - 0.5) * 0.3);
+    } else {
+      if (normal) {
+        end.x += normal.x * (0.4 + rand() * 1.8);
+        end.z += normal.z * (0.4 + rand() * 1.8);
+      }
+      end.x += (rand() - 0.5) * 1.8;
+      end.z += (rand() - 0.5) * 1.8;
+      end.y = heap(end.x, end.z) * (0.35 + rand() * 0.65) + 0.2;
+      const q = () => (Math.round(rand() * 4) - 2) * (Math.PI / 2) + (rand() - 0.5) * 0.5;
+      endRot.set(q(), rand() * Math.PI * 2, q());
+    }
+
+    // Everything comes to rest on the site pad, never in the void past its edge.
+    const reach = Math.max(size.x, size.z) / 2;
+    end.x = MathUtils.clamp(end.x, -W / 2 - FOUND_PAD + reach, W / 2 + FOUND_PAD - reach);
+    end.z = MathUtils.clamp(end.z, -D / 2 - FOUND_PAD + reach, D / 2 + FOUND_PAD - reach);
+    if (kind === 'block') end.y = Math.max(end.y, heap(end.x, end.z) * 0.35 + 0.2);
+
+    pieces.push({
+      base,
+      size,
+      tilt: new Vector3((rand() - 0.5) * 0.02, (rand() - 0.5) * 0.02, (rand() - 0.5) * 0.02),
+      t0,
+      dur,
+      end,
+      endRot,
+      lift,
+    });
+    kinds.push(kind);
+  };
+
+  // Columns, one per grid point per floor.
+  for (let f = 0; f < FLOORS; f++) {
+    for (let i = 0; i <= NX; i++) {
+      for (let j = 0; j <= NZ; j++) {
+        add('col', new Vector3(-W / 2 + i * BAY, f * FH + (FH - SLAB) / 2, -D / 2 + j * BAY), new Vector3(COL, FH - SLAB, COL));
+      }
+    }
+  }
+  // Floor and roof slabs, one panel per bay.
+  for (let f = 0; f < FLOORS; f++) {
+    for (let i = 0; i < NX; i++) {
+      for (let j = 0; j < NZ; j++) {
+        add('slab', new Vector3(-W / 2 + (i + 0.5) * BAY, (f + 1) * FH - SLAB / 2, -D / 2 + (j + 0.5) * BAY), new Vector3(BAY - 0.04, SLAB, BAY - 0.04));
+      }
+    }
+  }
+  // Block infill: front face (+z) and right face (+x), with window openings
+  // and a doorway in the middle bay of the ground floor.
+  const cw = BAY - COL;
+  const ch = FH - SLAB;
+  const bw = cw / BLOCK_COLS;
+  const bh = ch / BLOCK_ROWS;
+  const faces = [
+    { bays: NX, along: new Vector3(1, 0, 0), origin: new Vector3(-W / 2, 0, D / 2), normal: new Vector3(0, 0, 1), door: 1 },
+    { bays: NZ, along: new Vector3(0, 0, -1), origin: new Vector3(W / 2, 0, D / 2), normal: new Vector3(1, 0, 0), door: -1 },
+  ];
+  for (const face of faces) {
+    for (let f = 0; f < FLOORS; f++) {
+      for (let b = 0; b < face.bays; b++) {
+        for (let r = 0; r < BLOCK_ROWS; r++) {
+          for (let c = 0; c < BLOCK_COLS; c++) {
+            const door = f === 0 && b === face.door && c === 1 && r <= 4;
+            const opening = c === 1 && r >= 2 && r <= 4;
+            if (door || opening) continue;
+            const s = b * BAY + COL / 2 + (c + 0.5) * bw;
+            const base = face.origin
+              .clone()
+              .addScaledVector(face.along, s)
+              .add(new Vector3(0, f * FH + (r + 0.5) * bh, 0));
+            const size = face.normal.x ? new Vector3(BLOCK_D, bh - 0.04, bw - 0.04) : new Vector3(bw - 0.04, bh - 0.04, BLOCK_D);
+            add('block', base, size, face.normal);
+          }
+        }
+      }
+    }
+  }
+  return { pieces, kinds };
 }
 
 export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: boolean; lowPower?: boolean } = {}): HeroSceneHandle {
@@ -163,67 +365,55 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
   renderer.toneMappingExposure = 1.05;
   renderer.autoClear = false;
 
-  // ---------- Pass 1: the wall ----------
+  // ---------- Pass 1: the building ----------
   const scene = new Scene();
-  const camera = new PerspectiveCamera(FOV, 1, 0.1, 100);
+  const camera = new PerspectiveCamera(FOV, 1, 0.1, 200);
   addLights(scene);
 
-  const geo = new BoxGeometry(BW, BH, BD);
-  const mat = new MeshStandardMaterial({ map: concreteTexture(rand), roughness: 0.93, metalness: 0 });
-  const blocks: Block[] = [];
-  const impact = new Vector3(WALL_W * 0.32, WALL_H * 0.42, 0); // upper-right corner, where the "bucket" hits
+  const tex = concreteTexture(rand);
+  const mat = new MeshStandardMaterial({ map: tex, roughness: 0.93, metalness: 0 });
+  const unit = new BoxGeometry(1, 1, 1);
 
-  for (let r = 0; r < ROWS; r++) {
-    const offset = r % 2 ? (BW + GAP) / 2 : 0;
-    for (let c = 0; c < COLS; c++) {
-      const x = c * (BW + GAP) + offset - WALL_W / 2 + BW / 2;
-      const y = r * (BH + GAP) - WALL_H / 2 + BH / 2;
-      const base = new Vector3(x, y, (rand() - 0.5) * 0.12);
-      const dist = base.distanceTo(impact) / Math.hypot(WALL_W, WALL_H);
-      const away = base.clone().sub(impact).normalize();
-      blocks.push({
-        base,
-        delay: MathUtils.clamp(dist * 0.62 + rand() * 0.08, 0, 0.7),
-        vel: new Vector3(away.x * (1.5 + rand() * 2.5), 1.2 + rand() * 2.2, 3.5 + rand() * 4.5),
-        spin: new Vector3((rand() - 0.5) * 7, (rand() - 0.5) * 7, (rand() - 0.5) * 5),
-        scale: new Vector3(1 - rand() * 0.04, 1 - rand() * 0.06, 1 - rand() * 0.05),
-        tilt: new Vector3((rand() - 0.5) * 0.03, (rand() - 0.5) * 0.05, (rand() - 0.5) * 0.035),
-      });
-    }
-  }
+  const foundation = new Mesh(unit, new MeshStandardMaterial({ map: tex, roughness: 0.96, metalness: 0, color: 0x6b6a66 }));
+  foundation.scale.set(W + FOUND_PAD * 2, FOUND, D + FOUND_PAD * 2);
+  foundation.position.set(0, -FOUND / 2, 0);
+  scene.add(foundation);
 
-  const mesh = new InstancedMesh(geo, mat, blocks.length);
+  const { pieces, kinds } = buildPieces(rand);
+  const mesh = new InstancedMesh(unit, mat, pieces.length);
   mesh.instanceMatrix.setUsage(DynamicDrawUsage);
-  const grey = new Color();
-  blocks.forEach((_, i) => {
-    // About one block in twenty is painted safety yellow; the rest vary slightly in tone.
-    const painted = rand() < 0.045;
-    mesh.setColorAt(i, painted ? ACCENT : grey.setHSL(0.09, 0.03, 0.4 + rand() * 0.2));
+  mesh.frustumCulled = false;
+  const tone = new Color();
+  kinds.forEach((k, i) => {
+    // Frame concrete reads lighter and smoother than the block infill.
+    mesh.setColorAt(i, k === 'block' ? tone.setHSL(0.08, 0.04, 0.36 + rand() * 0.16) : tone.setHSL(0.1, 0.03, 0.56 + rand() * 0.08));
   });
   scene.add(mesh);
 
-  // Dust: one Points draw call. Brighter and denser as the wall breaks.
-  const DUST = opts.lowPower ? 140 : 320;
+  // Dust: one Points draw call, a low cloud that rises with the collapse and then settles.
+  const DUST = opts.lowPower ? 120 : 260;
   const dustPos = new Float32Array(DUST * 3);
   const dustSeed = new Float32Array(DUST * 4);
   for (let i = 0; i < DUST; i++) {
-    dustSeed[i * 4] = (rand() - 0.5) * WALL_W * 1.6;
-    dustSeed[i * 4 + 1] = (rand() - 0.5) * WALL_H * 1.3;
-    dustSeed[i * 4 + 2] = (rand() - 0.2) * 4;
+    dustSeed[i * 4] = (rand() - 0.5) * (W + 6);
+    dustSeed[i * 4 + 1] = rand() * 2.2;
+    dustSeed[i * 4 + 2] = (rand() - 0.5) * (D + 6);
     dustSeed[i * 4 + 3] = rand();
   }
   const dustGeo = new BufferGeometry();
   dustGeo.setAttribute('position', new BufferAttribute(dustPos, 3).setUsage(DynamicDrawUsage));
   const dustMat = new PointsMaterial({
     map: dustSprite(),
-    size: 0.32,
+    size: 1.3,
     transparent: true,
     depthWrite: false,
-    opacity: 0.18,
+    opacity: 0.03,
     color: 0xd8d2c4,
     blending: AdditiveBlending,
   });
-  scene.add(new Points(dustGeo, dustMat));
+  const dust = new Points(dustGeo, dustMat);
+  dust.frustumCulled = false;
+  scene.add(dust);
 
   // ---------- Pass 2: falling debris across the page ----------
   const trailScene = new Scene();
@@ -231,7 +421,8 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
   const TRAIL_D = 24;
   trailCam.position.set(0, 0, TRAIL_D);
   addLights(trailScene);
-  const trailMesh = new InstancedMesh(geo, mat, TRAIL);
+  const trailGeo = new BoxGeometry(BW, BH, BD);
+  const trailMesh = new InstancedMesh(trailGeo, mat, TRAIL);
   trailMesh.instanceMatrix.setUsage(DynamicDrawUsage);
   trailMesh.frustumCulled = false;
   trailScene.add(trailMesh);
@@ -253,7 +444,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
       size: 48 + rand() * 34,
       pile: { x: slot.x, y: slot.y, rz: (rand() - 0.5) * 0.35, ry: (rand() - 0.5) * 0.9 },
     });
-    trailMesh.setColorAt(i, i === 4 || i === 9 ? ACCENT : grey.setHSL(0.09, 0.03, 0.42 + rand() * 0.18));
+    trailMesh.setColorAt(i, i === 4 || i === 9 ? ACCENT : tone.setHSL(0.09, 0.03, 0.42 + rand() * 0.18));
   }
 
   const m = new Matrix4();
@@ -271,36 +462,52 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
   let last = performance.now();
   let time = 0;
   let box: Rect | null = null;
+  let clipBottom: number | null = null;
   let boxAspect = 0;
   let camDist = 0;
   let page = { scroll: 0, smooth: 0, footerTop: null as number | null };
   let trailDirty = true;
 
-  function layoutBlocks(t: number) {
-    blocks.forEach((b, i) => {
-      // Local time for this block: 0 until its delay, then 0..1.
-      const tau = MathUtils.clamp((t - b.delay) / (1 - b.delay), 0, 1);
-      const k = tau * 2.4;
-      p.set(b.base.x + b.vel.x * k, b.base.y + b.vel.y * k - 9.8 * 0.5 * k * k, b.base.z + b.vel.z * k);
-      e.set(b.tilt.x + b.spin.x * k, b.tilt.y + b.spin.y * k, b.tilt.z + b.spin.z * k);
+  function layoutPieces(t: number) {
+    pieces.forEach((b, i) => {
+      const tau = MathUtils.clamp((t - b.t0) / b.dur, 0, 1);
+      if (tau === 0) {
+        p.copy(b.base);
+        e.set(b.tilt.x, b.tilt.y, b.tilt.z);
+      } else {
+        // Horizontal drift eases out, the drop accelerates (gravity), plus the bucket's kick.
+        const hz = 1 - (1 - tau) * (1 - tau);
+        const g = tau * tau;
+        p.set(
+          b.base.x + (b.end.x - b.base.x) * hz,
+          b.base.y + (b.end.y - b.base.y) * g + b.lift * 4 * tau * (1 - tau),
+          b.base.z + (b.end.z - b.base.z) * hz,
+        );
+        const r = smoothstep(0, 1, tau);
+        e.set(b.tilt.x + (b.endRot.x - b.tilt.x) * r, b.tilt.y + (b.endRot.y - b.tilt.y) * r, b.tilt.z + (b.endRot.z - b.tilt.z) * r);
+      }
       q.setFromEuler(e);
-      m.compose(p, q, b.scale);
+      m.compose(p, q, b.size);
       mesh.setMatrixAt(i, m);
     });
     mesh.instanceMatrix.needsUpdate = true;
   }
 
   function layoutDust(t: number) {
+    const puff = smoothstep(0.06, 0.16, t) * (1 - smoothstep(0.2, 0.34, t)) * 0.35; // the corner hit
+    const rise = smoothstep(0.3, 0.72, t); // the collapse
+    const settle = smoothstep(0.78, 1, t);
     for (let i = 0; i < DUST; i++) {
       const s = dustSeed[i * 4 + 3];
       const drift = time * (0.05 + s * 0.12);
-      dustPos[i * 3] = dustSeed[i * 4] + Math.sin(drift + s * 10) * 0.4 + t * (s - 0.5) * 6;
-      dustPos[i * 3 + 1] = dustSeed[i * 4 + 1] + ((drift * 0.6 + s * 5) % 3) - 1.5 + t * 2.5 * s;
-      dustPos[i * 3 + 2] = dustSeed[i * 4 + 2] + t * 3 * s;
+      dustPos[i * 3] = dustSeed[i * 4] * (0.7 + rise * 0.5) + Math.sin(drift + s * 10) * 0.5;
+      dustPos[i * 3 + 1] = dustSeed[i * 4 + 1] * (1 + rise * 3.2 * s) * (1 - settle * 0.55) + Math.sin(drift * 0.7 + s * 4) * 0.15;
+      dustPos[i * 3 + 2] = dustSeed[i * 4 + 2] * (0.7 + rise * 0.5) + Math.cos(drift + s * 7) * 0.5;
     }
     dustGeo.attributes.position.needsUpdate = true;
-    dustMat.opacity = 0.035 + t * 0.55;
-    dustMat.size = 0.3 + t * 0.55;
+    // Big, faint, overlapping sprites read as a cloud; small bright ones read as sparkle.
+    dustMat.opacity = 0.03 + puff * 0.5 + rise * (0.2 - settle * 0.12);
+    dustMat.size = 1.3 + rise * 2.6;
   }
 
   // Screen-space (CSS px) layout for the debris, converted to world units at z = 0.
@@ -308,7 +515,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
     const wpp = (2 * TRAIL_D * Math.tan(MathUtils.degToRad(FOV / 2))) / H; // world units per px
-    const appear = smoothstep(0.35, 0.85, heroT); // chunks join once the wall has broken
+    const appear = smoothstep(0.35, 0.85, heroT); // chunks join once the building is coming down
     // The side gutters outside the content column, with a floor so they're never zero-width.
     const gutter = Math.max(56, (W - 1312) / 2);
     const land = page.footerTop === null ? 0 : smoothstep(H * 1.05, H * 0.45, page.footerTop);
@@ -328,7 +535,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
         const bh = c.size * (BH / BW);
         const px = W * c.pile.x;
         const py = page.footerTop - bh * 0.55 - c.pile.y * bh * 0.82;
-        const k = smoothstep(i / TRAIL * 0.35, 0.65 + (i / TRAIL) * 0.35, land);
+        const k = smoothstep((i / TRAIL) * 0.35, 0.65 + (i / TRAIL) * 0.35, land);
         x += (px - x) * k;
         y += (py - y) * k;
         // Settle the tumble into a resting pose along the shortest rotation.
@@ -347,10 +554,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
 
   function frameCamera(aspect: number) {
     camera.aspect = aspect;
-    const tan = Math.tan(MathUtils.degToRad(FOV / 2));
-    const dH = (WALL_H * FRAME_MARGIN) / 2 / tan;
-    const dW = (WALL_W * FRAME_MARGIN) / 2 / (tan * aspect);
-    camDist = Math.max(dH, dW);
+    camDist = fitDistance(aspect);
     camera.updateProjectionMatrix();
   }
 
@@ -360,7 +564,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
     trailCam.aspect = canvas.clientWidth / Math.max(canvas.clientHeight, 1);
     trailCam.updateProjectionMatrix();
-    boxAspect = 0; // re-frame the wall on the next render
+    boxAspect = 0; // re-frame the building on the next render
     trailDirty = true;
   }
 
@@ -371,24 +575,28 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     renderer.setViewport(0, 0, W, H);
     renderer.clear();
 
-    // Pass 1: the wall, only while its box is on screen.
+    // Pass 1: the building, only where its box is on screen and not covered by the next section.
     const r = box ?? { left: 0, top: 0, width: W, height: H };
-    if (r.top + r.height > 0 && r.top < H) {
+    const visTop = Math.max(0, r.top);
+    const visBottom = Math.min(H, r.top + r.height, clipBottom ?? Infinity);
+    if (visBottom > visTop) {
       const aspect = r.width / Math.max(r.height, 1);
       if (Math.abs(aspect - boxAspect) > 1e-4) {
         boxAspect = aspect;
         frameCamera(aspect);
       }
-      // Gentle camera sway toward the pointer (a few degrees, lerped).
+      // Gentle camera sway toward the pointer, a slow orbit, and a drop to the rubble at the end.
       pointer.sx += (pointer.x - pointer.sx) * 0.05;
       pointer.sy += (pointer.y - pointer.sy) * 0.05;
-      const yaw = -0.3 + pointer.sx * 0.1;
-      const pitch = 0.07 + pointer.sy * 0.05;
-      camera.position.set(Math.sin(yaw) * camDist, Math.sin(pitch) * camDist, Math.cos(yaw) * camDist);
-      camera.lookAt(0, 0, 0);
+      const down = smoothstep(0.35, 0.95, smooth);
+      const yaw = YAW + smooth * 0.14 + pointer.sx * 0.08;
+      const pitch = PITCH + down * 0.1 + pointer.sy * 0.04;
+      const dist = camDist * (1 - down * 0.24);
+      const lookY = LOOK_Y - down * 2.6;
+      placeCamera(camera, yaw, pitch, dist, lookY);
       const y = H - (r.top + r.height); // WebGL viewports start bottom-left
       renderer.setViewport(r.left, y, r.width, r.height);
-      renderer.setScissor(Math.max(0, r.left), Math.max(0, y), Math.min(r.width, W), Math.min(r.height, H));
+      renderer.setScissor(Math.max(0, r.left), H - visBottom, Math.min(r.width, W), visBottom - visTop);
       renderer.setScissorTest(true);
       renderer.render(scene, camera);
       renderer.setScissorTest(false);
@@ -410,14 +618,14 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     const prevScroll = page.smooth;
     page.smooth += (page.scroll - page.smooth) * Math.min(1, dt * 9);
     if (Math.abs(page.scroll - page.smooth) < 0.3) page.smooth = page.scroll;
-    const heroOnScreen = !box || (box.top + box.height > 0 && box.top < canvas.clientHeight);
+    const heroOnScreen = !box || (box.top + box.height > 0 && box.top < canvas.clientHeight && (clipBottom ?? Infinity) > Math.max(0, box.top));
 
     // Only draw when something moved: the hero animates (dust) while visible,
     // the debris only while the page is scrolling or settling.
     const moving = heroOnScreen || trailDirty || page.smooth !== prevScroll;
     if (moving) {
       if (heroOnScreen) {
-        layoutBlocks(smooth);
+        layoutPieces(smooth);
         layoutDust(smooth);
       }
       layoutTrail(smooth);
@@ -428,12 +636,15 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
   }
 
   resize();
-  layoutBlocks(0);
+  layoutPieces(0);
   layoutDust(0);
 
   return {
     setBox(r) {
       box = r;
+    },
+    setClip(bottom) {
+      clipBottom = bottom;
     },
     setProgress(v) {
       progress = MathUtils.clamp(v, 0, 1);
@@ -456,7 +667,7 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
       } else cancelAnimationFrame(raf);
     },
     renderOnce() {
-      layoutBlocks(smooth);
+      layoutPieces(smooth);
       layoutDust(smooth);
       layoutTrail(smooth);
       render();
@@ -465,9 +676,11 @@ export function createHeroScene(canvas: HTMLCanvasElement, opts: { poster?: bool
     dispose() {
       cancelAnimationFrame(raf);
       running = false;
-      geo.dispose();
-      mat.map?.dispose();
+      unit.dispose();
+      trailGeo.dispose();
+      tex.dispose();
       mat.dispose();
+      (foundation.material as MeshStandardMaterial).dispose();
       dustGeo.dispose();
       dustMat.map?.dispose();
       dustMat.dispose();

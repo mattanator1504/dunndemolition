@@ -8,8 +8,10 @@ import type { HeroSceneHandle } from './HeroScene';
 // - never under reduced motion, Save-Data, no WebGL, small screens or low-power devices
 // - otherwise on the first user interaction, or once the page has been idle a while
 // The poster (same framing as the scene's first frame) is always rendered first.
-// Live, the canvas is a fixed, click-through layer over the whole viewport: the wall is
+// Live, the canvas is a fixed, click-through layer over the whole viewport: the building is
 // drawn inside the hero's box, and debris falls down the page edges to the footer.
+// Under html.js-pin the hero is a tall track with a sticky stage; progress runs across the
+// track up to where the next section starts sliding over, and the building is clipped there.
 
 function canRun3D() {
   if (typeof window === 'undefined') return false;
@@ -38,7 +40,12 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
 
   // Step 1: wait for a reason to load.
   useEffect(() => {
-    if (!canRun3D()) return;
+    if (!canRun3D()) {
+      // The boot script pinned the hero for a scene that can't run here (e.g. no WebGL2):
+      // unpin, so the poster isn't held for screens of dead scroll.
+      document.documentElement.classList.remove('js-pin');
+      return;
+    }
     const poster = new URLSearchParams(location.search).has('poster');
     if (poster) {
       setActive(true);
@@ -74,12 +81,19 @@ export function HeroSceneMount({ heroId }: { heroId: string }) {
     const hero = document.getElementById(heroId);
 
     const footer = document.querySelector('footer');
+    const next = hero?.nextElementSibling ?? null;
+    const header = document.querySelector('header');
     const sync = () => {
       if (!hero || !handle || !boxRef.current) return;
       const r = hero.getBoundingClientRect();
-      handle.setProgress(-r.top / (r.height * 0.8));
       const b = boxRef.current.getBoundingClientRect();
+      const headerH = header?.offsetHeight ?? 0;
+      const stage = innerHeight - headerH;
+      // Pinned: the track minus the stage, minus the stretch where the rest of the page slides over.
+      const travel = r.height - 2 * stage;
+      handle.setProgress(travel > stage * 0.5 ? (headerH - r.top) / travel : -r.top / (r.height * 0.8));
       handle.setBox({ left: b.left, top: b.top, width: b.width, height: b.height });
+      handle.setClip(next ? next.getBoundingClientRect().top : null);
       handle.setPage(window.scrollY, footer ? footer.getBoundingClientRect().top : null);
     };
     const onScroll = () => {
